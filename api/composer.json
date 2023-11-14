@@ -1,0 +1,67 @@
+{
+  "name": "workerman/webman",
+  "type": "library",
+  "keywords": [
+    "high performance",
+    "http service"
+  ],
+  "homepage": "http://www.workerman.net",
+  "license": "MIT",
+  "description": "High performance HTTP Service Framework.",
+  "authors": [
+    {
+      "name": "walkor",
+      "email": "walkor@workerman.net",
+      "homepage": "http://www.workerman.net",
+      "role": "Developer"
+    }
+  ],
+  "support": {
+    "email": "walkor@workerman.net",
+    "issues": "https://github.com/walkor/webman/issues",
+    "forum": "http://wenda.workerman.net/",
+    "wiki": "http://workerman.net/doc/webman",
+    "source": "https://github.com/walkor/webman"
+  },
+  "require": {
+    "php": ">=7.2",
+    "workerman/webman-framework": "^1.0",
+    "monolog/monolog": "^2.0",
+    "illuminate/database": "^7.28",
+    "illuminate/redis": "^7.28",
+    "vlucas/phpdotenv": "^4.0",
+    "ramsey/uuid": "^4.0",
+    "guzzlehttp/guzzle": "^7.2",
+    "swiftmailer/swiftmailer": "^6.0",
+    "webman/redis-queue": "^1.0",
+    "workerman/crontab": "^1.0",
+    "davedevelopment/phpmig": "^1.7",
+    "twig/twig": "^3.3",
+    "webman/console": "^1.0",
+    "symfony/console": "^5.4",
+    "alibabacloud/ecs-20140526": "^3.0",
+    "alibabacloud/darabonba-openapi": "^0.2.8",
+    "alibabacloud/dysmsapi-20170525": "2.0.23",
+    "alibabacloud/sts-20150401": "^1.1",
+    "aliyuncs/oss-sdk-php": "^2.6"
+  },
+  "suggest": {
+    "ext-event": "For better performance. "
+  },
+  "autoload": {
+    "files": [
+      "./support/helpers.php"
+    ],
+    "psr-4": {
+      "": "./"
+    }
+  },
+  "scripts": {
+    "post-autoload-dump": [
+      "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+    ]
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^8.5"
+  }
+}

@@ -1,0 +1,10 @@
+develop-deploy:
+  stage: deploy
+  tags:
+    - custome-test-env-deploy
+  script: 
+    - cd /data/www/360feedback.dev12.edusoho.cn/h5
+    - git pull origin develop
+    - yarn install && yarn build
+  only:
+    - develop

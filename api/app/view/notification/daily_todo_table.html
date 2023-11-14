@@ -1,0 +1,40 @@
+<p 
+    style="margin: 0px; font-size:14px;line-height:24px;letter-spacing:0;font-weight:400;color:#1f1f1f; margin-bottom: 10px;">
+    亲爱的用户您好，您总共有 {{total}} 项待办；其中，已过期 {{ overdue|length }} 项，即将过期 {{ nearly|length }} 项。
+</p>
+<table class="table" style="font-size:13px;line-height:24px;letter-spacing:0;font-weight:400;color:#1f1f1f; width: 100%; margin-bottom: 40px;">
+    <tr style="background: #1890FF; color: #FFF;">
+        <th width="70%" style="text-align: left;">任务</th>
+        <th width="10%">状态</th>
+        <th>过期时间</th>
+    </tr>
+
+    {% for t in overdue %}
+    <tr>
+        <td>
+            <a href="{{t.url}}" _target="blank" style="color: #1890FF;">{{t.name}}</a>
+        </td>
+        <td style="text-align: center;">已过期</td>
+        <td style="text-align: center;">{{t.due_date}}</td>
+    </tr>
+    {% endfor %}
+    {% for t in nearly %}
+    <tr>
+        <td>
+            <a href="{{t.url}}" _target="blank" style="color: #1890FF;">{{t.name}}</a>
+        </td>
+        <td style="text-align: center;">即将过期</td>
+        <td style="text-align: center;">{{t.due_date}}</td>
+    </tr>
+    {% endfor %}
+
+    {% for t in normal %}
+    <tr>
+        <td>
+            <a href="{{t.url}}" _target="blank" style="color: #1890FF;">{{t.name}}</a>
+        </td>
+        <td style="text-align: center;"></td>
+        <td style="text-align: center;">{{t.due_date}}</td>
+    </tr>
+    {% endfor %}
+</table>

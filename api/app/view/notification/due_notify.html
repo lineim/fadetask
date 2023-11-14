@@ -1,0 +1,11 @@
+{% extends "notification/layout.html" %}
+
+{% block title %}
+    到期提醒
+{% endblock %}
+{% block content %}
+    <p 
+    style="font-family:Helvetica,Arial,sans-serif; margin: 0px; font-size:14px;line-height:24px;letter-spacing:0;font-weight:400;color:#1f1f1f; margin-bottom: 10px;">
+    亲爱的用户您好，您的卡片 <a href="{{url}}">{{ title }}</a> 将在 {{due_time}} 到期，请尽快处理。
+    </p>
+{% endblock %}

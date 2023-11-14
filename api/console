@@ -1,0 +1,20 @@
+#!/usr/bin/env php
+<?php
+// application.php
+
+require __DIR__.'/vendor/autoload.php';
+require __DIR__.'/App.php';
+
+use Symfony\Component\Console\Application;
+
+App::boot('.env');
+
+$app = new Application();
+
+$app->add(new app\command\ReCalTaskCheckListCountCommand());
+$app->add(new app\command\ReCalTaskLabelCountCommand());
+$app->add(new app\command\ReCalTaskMemberCountCommand());
+$app->add(new app\command\GenerateKanbanUuidCommand());
+$app->add(new app\command\GenerateAttachmentUuidCommand());
+
+$app->run();

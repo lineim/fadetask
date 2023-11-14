@@ -1,0 +1,40 @@
+/api/.idea
+/api/.vscode
+/api/vendor
+/api/*.log
+/api/.env
+/api/data
+/api/runtime/logs
+/api/runtime/sessions
+/api/.scannerwork
+/api/.unit-test-env
+/api/app/.phpunit.result.cache
+/api/phpunit.coverage.xml
+/api/phpunit.report.xml
+# web
+/web/.DS_Store
+/web/dump.rdb
+/web/node_modules
+/web/dist
+/web/target
+
+# local env files
+/web/.env.local
+/web/.env.*.local
+
+# Log files
+/web/npm-debug.log*
+/web/yarn-debug.log*
+/web/yarn-error.log*
+
+# Editor directories and files
+/web/.idea
+/web/.vscode
+/web/*.suo
+/web/*.ntvs*
+/web/*.njsproj
+/web/*.sln
+/web/*.sw?
+
+/web/.scannerwork/
+

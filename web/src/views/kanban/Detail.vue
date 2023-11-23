@@ -24,8 +24,11 @@
         <div class="list-inner">
           <div class="list-header">
             {{ l.name }}&nbsp;
+            <!-- show wip -->
             <span v-if="l.wip > 0">{{ l.task_count }}&nbsp;/&nbsp; Max {{ l.wip }}</span>
             <span v-else>{{ l.task_count }}</span>
+
+            <!-- show if is completed list -->
             <a-tooltip v-if="l.completed">
               <template slot="title">
                 <span>{{ $t('list.complete.tips') }}</span>
@@ -36,6 +39,8 @@
                 class="mlm"
               />
             </a-tooltip>
+
+            <!-- List handle popover -->
             <a-popover 
               :style="{float: 'right'}" 
               placement="bottom"
@@ -97,16 +102,21 @@
                 icon="ellipsis" 
               />
             </a-popover>
-            <!-- 列表名称编辑框 -->
+            <!-- edit list -->
             <div class="mtm not-draggle">
-              <a-input 
-                ref="listinput" 
-                v-if="showListEdit(l.id)" 
-                v-model="l.name"
-                @click="inputFocus"
-                @pressEnter="listNameSubmit(l.id, l.name)" 
-                :placeholder="$t('list.create.placeholer')"
-              />
+              <div v-if="showListEdit(l.id)">
+                <a-input 
+                  ref="listinput"  
+                  v-model="l.name"
+                  @click="inputFocus"
+                  @pressEnter="listNameSubmit(l.id, l.name)" 
+                  :placeholder="$t('list.create.placeholer')"
+                />
+                <div class="clearfix mtxs">
+                  <a-button size="small" class="pull-right" type="primary" @click.stop="listNameSubmit(l.id, l.name)">{{ $t('submit') }}</a-button>
+                  <a-button size="small" class="pull-right mrxs" @click.stop="switchListEdit(l.id, l.name)">{{ $t('cancel') }}</a-button>
+                </div>
+              </div>
             </div>
           </div>
           <div
@@ -365,7 +375,7 @@
             <a-form-model-item 
               ref="name" 
               prop="name" 
-              :style="{'margin-bottom': '10px'}"
+              :style="{'margin-bottom': '5px'}"
             >
               <a-input 
                 v-model="listForm.name" 
@@ -377,18 +387,23 @@
               />
             </a-form-model-item>
             <a-form-model-item>
-              <a-button 
-                style="margin-right: 15px;" 
-                @click="newListCancel()"
-              >
-                {{ $t('cancel') }}
-              </a-button>
-              <a-button 
-                type="primary" 
-                @click="listSubmit()"
-              >
-                {{ $t('submit') }}
-              </a-button>
+              <div class="clearfix">
+                <a-button 
+                  class="pull-right"
+                  type="primary" 
+                  size="small" 
+                  @click="listSubmit()"
+                >
+                  {{ $t('submit') }}
+                </a-button>
+                <a-button 
+                  class="mrxs pull-right"
+                  size="small" 
+                  @click="newListCancel()"
+                >
+                  {{ $t('cancel') }}
+                </a-button>
+              </div>
             </a-form-model-item>
           </a-form-model>
         </div>
@@ -606,6 +621,7 @@ const DEFAULT_FOOTER_HEIGHT = 50; // list footer 默认高度
 const FOOTER_EXPEND_HEIGHT = 121; // list footer 展开后的高度
 const DEFAULT_HEADER_HEIGHT = 45; // list header 默认高度
 const DEFAULT_BODY_V_PADDING = 0; // list body 垂直 padding
+const DEFAULT_LIST_EDIT_FORM_HEIGHT = 61+15; // list edit form 高度
 const DEFAULT_BOARD_NAV_HEIGHT = 36; // 看板导航高度
 const DEFAULT_ICP_HEIGHT = 0; // 备案信息展示栏高度
 
@@ -735,6 +751,7 @@ export default {
       },
       editList: {},
       listOriginName: {},
+      listEditFormHeight: {},
       showCardModal: false,
       showCardId: 0,
       footerAcivityListIds: [],
@@ -835,7 +852,8 @@ export default {
         if (this.footerAcivityListIds.indexOf(listId) > -1) { // 展开
           listFooterHeight = FOOTER_EXPEND_HEIGHT;
         }
-        const height = this.bodyHeight - PAGE_HEADER_HEADER - DEFAULT_ICP_HEIGHT - DEFAULT_BOARD_NAV_HEIGHT - listHeaderH - listBodyVPadding - listFooterHeight;
+        let listEditFormHeight = (typeof(this.listEditFormHeight[listId]) == "undefined" || !this.listEditFormHeight[listId]) ? 0 : this.listEditFormHeight[listId];
+        const height = this.bodyHeight - PAGE_HEADER_HEADER - DEFAULT_ICP_HEIGHT - DEFAULT_BOARD_NAV_HEIGHT - listHeaderH - listEditFormHeight - listBodyVPadding - listFooterHeight;
 
         return {'maxHeight': height + 'px'};
       }
@@ -1431,7 +1449,7 @@ export default {
           api
             .cardCreate({query: {boardId: this.id}, data: postData})
             .then(() => {
-              this.$message.success("已添加");
+              this.$message.success(i18n.t('task.create.success_msg'));
               this.loadData(this.uuid);
               this.submitDisable[listId] = false;
               this.$refs.cardForm[0].resetFields();
@@ -1453,7 +1471,7 @@ export default {
           api
             .listCreate({query: {id: this.id}, data: this.listForm})
             .then(() => {
-              this.$message.success("success");
+              this.$message.success(i18n.t('list.create.success_msg'));
               this.loadData(this.uuid);
               this.$refs.listForm.resetFields();
               this.showNewList = false;
@@ -1476,9 +1494,11 @@ export default {
       if (typeof(this.editList[listId]) == "undefined" || !this.editList[listId]) {
         show = false;
         this.listOriginName[listId] = listName;
+        this.listEditFormHeight[listId] = DEFAULT_LIST_EDIT_FORM_HEIGHT;
         // todo: 编辑框自动获取交点
       } else {
         show = true;
+        this.listEditFormHeight[listId] = 0;
         let originName = this.listOriginName[listId];
         if (!originName) {
           return;
@@ -1510,6 +1530,7 @@ export default {
       let tmp = {};
       tmp[listId] = false;
       this.editList = tmp;
+      this.listEditFormHeight = {};
     },
 
     listNameSubmit: function(listId, listName) {

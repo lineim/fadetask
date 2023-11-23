@@ -299,7 +299,8 @@ const zh = {
     list: {
         create: {
             label: "新列",
-            placeholer: "请输入新列名称"
+            placeholer: "请输入新列名称",
+            success_msg: '新列创建成功'
         },
         edit: {
             label: "编辑",
@@ -325,6 +326,7 @@ const zh = {
             create_btn_label: "新卡片",
             wip_limited_label: "WIP超限",
             wip_limited_msg: "列卡片数已经达到wip限制，不能创建新卡片！",
+            success_msg: '卡片创建成功',
         },
         member: {
             label: '成员',

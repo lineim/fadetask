@@ -479,10 +479,17 @@ class Project extends BaseModule
         if (!$project) {
             throw new ResourceNotFoundException('project.not_found');
         }
-        $kanbanIds = ProjectKanban::where('project_id', $project->id)->get()->pluck('kanban_id')->toArray();
+
+        $kanbanIds = ProjectKanban::where('project_id', $project->id)
+            ->get()
+            ->pluck('kanban_id')
+            ->toArray();
+        
         if (empty($kanbanIds)) {
             return [];
         }
+        $kanbans = $this->getKanbanModule()->getByIds($kanbanIds, $fields);
+        $kanbanIds = $kanbans->pluck('id')->toArray();
         $statModule = $this->getProjectStatModule();
         $statModule->setKanbanIds($kanbanIds);
         $kanbansOverview = $statModule->kanbanOverdue();
@@ -497,7 +504,6 @@ class Project extends BaseModule
             array_push($fields, 'id');
         }
 
-        $kanbans = $this->getKanbanModule()->getByIds($kanbanIds, $fields);
         foreach ($kanbans as &$kanban) {
             $statsData = [
                 'total' => 0,

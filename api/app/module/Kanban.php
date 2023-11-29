@@ -430,14 +430,14 @@ class Kanban extends BaseModule
 
     public function close($kanbanId)
     {
-        $kanban = $this->get($kanbanId, ['id']);
+        $kanban = $this->getByUuid($kanbanId, ['id', 'is_closed']);
         if (!$kanban) {
             throw new ResourceNotFoundException("kanban.not_found");
         }
         $kanban->is_closed = self::KANBAN_CLOSED;
         $closed = $kanban->save();
         if ($closed) {
-            $this->getProjectModule()->onKanbanClose($kanbanId);
+            $this->getProjectModule()->onKanbanClose($kanban->id);
         }
         return $closed;
     }

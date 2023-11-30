@@ -48,9 +48,11 @@ class ProjectStat extends BaseModule
         if ($this->project->is_closed) {
             throw new BusinessException('project.closed');
         }
-        $this->kanbanIds = ProjectKanbanModel::where('project_id', $this->project->id)
+        $kanbanIds = ProjectKanbanModel::where('project_id', $this->project->id)
             ->pluck('kanban_id')
             ->toArray();
+        $kanbans = $this->getKanbanModule()->getByIds($kanbanIds, ['id']);
+        $this->kanbanIds = $kanbans->pluck('id')->toArray();
     }
 
     protected function memberLoad()

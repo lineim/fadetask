@@ -379,7 +379,7 @@ class Kanban extends Base
         $user = $this->getUser($request);
         
         if (!$this->getKanbanModule()->isAdmin($id, $user['id'])) {
-            throw new AccessDeniedException('Permission denied');
+            throw new AccessDeniedException();
         }
         $closed = $this->getKanbanModule()->close($id);
 
@@ -391,7 +391,7 @@ class Kanban extends Base
         $user = $this->getUser($request);
         
         if (!$this->getKanbanModule()->isAdmin($id, $user['id'])) {
-            throw new AccessDeniedException('Permission denied');
+            throw new AccessDeniedException();
         }
         $unclose = $this->getKanbanModule()->unclose($id);
 

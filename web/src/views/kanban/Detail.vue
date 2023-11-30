@@ -667,6 +667,7 @@ function onBus(vueInst, uuid) {
 }
 
 function offBus(vueInst) {
+  vueInst.busEventInited = false;
   vueInst.$bus.$off('card-unarchived');
   vueInst.$bus.$off('list-unarchived');
   vueInst.$bus.$off('kanban-search-cond-change');

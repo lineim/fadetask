@@ -21,7 +21,7 @@
         <a @click.stop="gotoProjectKanban(currentBoard.project.uuid)">
           <a-icon
             class="mrxs"
-            type="project"
+            type="folder-open"
           />
           <span>{{ currentBoard.project.name }}</span>
         </a>
@@ -57,7 +57,7 @@
       <a-select-option value="kanban">
         <a-icon
           class="mrs"
-          type="project"
+          type="folder-open"
         />{{ $t('board_nav.view.kanban') }}
       </a-select-option>
       <a-select-option value="dashboard">

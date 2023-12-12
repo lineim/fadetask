@@ -23,7 +23,7 @@
             </span>
             <span class="nav-menu-item mrl">
               <a @click.stop="goProject">
-                <a-icon type="project" /> {{ $t('nav.project') }}
+                <a-icon type="folder-open" /> {{ $t('nav.project') }}
               </a>
             </span>
             <span class="nav-menu-item mrxl">

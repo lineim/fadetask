@@ -170,10 +170,13 @@ class Project extends BaseModule
         if (!$closeKanban) {
             return (bool) $project->save();
         }
-        $kanbanIds = $this->getProjectKanbans($uuid, ['id'])->pluck('id')->toArray();
-        if (empty($kanbanIds)) {
+
+        $kanbans = $this->getProjectKanbans($uuid, ['id']);
+        if (empty($kanbans)) {
             return (bool) $project->save();
         }
+
+        $kanbanIds = $kanbans->pluck('id')->toArray();
         $rowCount = $this->getKanbanModule()->closeByIds($kanbanIds);
         $this->waveKanbanNum($project->id, 0 - $rowCount);
         $project->save();

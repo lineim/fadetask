@@ -61,7 +61,7 @@
 
             <!-- <a-sub-menu key="Project">
               <span slot="title">
-                <a-icon type="project" />
+                <a-icon type="folder-open" />
                 <span>{{ $t('home.menu_project') }}</span>
                 <a @click.stop="() => {}"><a-icon type="plus" /></a>
               </span>
@@ -71,7 +71,7 @@
             </a-sub-menu> -->
 
             <a-menu-item key="ProjectList">
-              <a-icon type="project" />
+              <a-icon type="folder-open" />
               <span>{{ $t('home.menu_project') }}</span>
             </a-menu-item>
             <a-menu-item key="KanbanAll">

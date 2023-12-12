@@ -57,7 +57,7 @@
                         @click.stop="gotoProject(item.project_uuid)"
                       ><a-icon
                         class="mrxs"
-                        type="project"
+                        type="folder-open"
                       />{{ item.project }}</a>
                       <span v-if="item.project_uuid">/</span>
                       <a @click.stop="gotoDetail(item.kanban.uuid)"><a-icon
@@ -123,7 +123,7 @@
                         @click.stop="gotoProject(item.project_uuid)"
                       ><a-icon
                         class="mrxs"
-                        type="project"
+                        type="folder-open"
                       />{{ item.project }}</a>
                       <span v-if="item.project_uuid">/</span>
                       <a @click.stop="gotoDetail(item.kanban.uuid)"><a-icon
@@ -188,7 +188,7 @@
                         @click.stop="gotoProject(item.project_uuid)"
                       ><a-icon
                         class="mrxs"
-                        type="project"
+                        type="folder-open"
                       />{{ item.project }}</a>
                       <span v-if="item.project_uuid">/</span>
                       <a @click.stop="gotoDetail(item.kanban.uuid)"><a-icon
@@ -248,7 +248,7 @@
                         @click.stop="gotoProject(item.project_uuid)"
                       ><a-icon
                         class="mrxs"
-                        type="project"
+                        type="folder-open"
                       />{{ item.project }}</a>
                       <span v-if="item.project_uuid">/</span>
                       <a @click.stop="gotoDetail(item.kanban.uuid)"><a-icon

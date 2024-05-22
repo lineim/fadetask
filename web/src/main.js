@@ -11,8 +11,8 @@ import bus from "@/utils/bus";
 import i18n from './i18n/';
 import { firstWord } from "@/utils";
 import '@/less/main.less';
-import * as Sentry from "@sentry/vue";
-import { BrowserTracing } from "@sentry/tracing";
+// import * as Sentry from "@sentry/vue";
+// import { BrowserTracing } from "@sentry/tracing";
 
 Vue.config.productionTip = false
 Vue.prototype.firstWord = firstWord
@@ -47,21 +47,21 @@ Vue.use(bus);
 Vue.use(less);
 
 if (process.env.NODE_ENV === "production") {
-  Sentry.init({
-    Vue,
-    dsn: "https://d3dde49e6eb34282871bad8a2ec3c42c@o4504286262722560.ingest.sentry.io/4504286268096512",
-    integrations: [
-      new BrowserTracing({
-        routingInstrumentation: Sentry.vueRouterInstrumentation(router),
-        tracePropagationTargets: ["kb.lineim.com", /^\//],
-      }),
-    ],
-    // Set tracesSampleRate to 1.0 to capture 100%
-    // of transactions for performance monitoring.
-    // We recommend adjusting this value in production
-    tracesSampleRate: 1.0,
-    logErrors: true
-  });
+  // Sentry.init({
+  //   Vue,
+  //   dsn: "https://d3dde49e6eb34282871bad8a2ec3c42c@o4504286262722560.ingest.sentry.io/4504286268096512",
+  //   integrations: [
+  //     new BrowserTracing({
+  //       routingInstrumentation: Sentry.vueRouterInstrumentation(router),
+  //       tracePropagationTargets: ["kb.lineim.com", /^\//],
+  //     }),
+  //   ],
+  //   // Set tracesSampleRate to 1.0 to capture 100%
+  //   // of transactions for performance monitoring.
+  //   // We recommend adjusting this value in production
+  //   tracesSampleRate: 1.0,
+  //   logErrors: true
+  // });
 }
 
 new Vue({

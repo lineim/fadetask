@@ -1,6 +1,6 @@
 {
-  "name": "workerman/webman",
-  "type": "library",
+  "name": "fade/fadetask",
+  "type": "project",
   "keywords": [
     "high performance",
     "http service"
@@ -8,6 +8,11 @@
   "homepage": "http://www.workerman.net",
   "license": "MIT",
   "description": "High performance HTTP Service Framework.",
+  "config": {
+    "platform": {
+			"php": "7.4"
+		}
+  },
   "authors": [
     {
       "name": "walkor",

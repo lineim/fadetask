@@ -374,16 +374,6 @@ class Init extends Migration
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
         
         
-        
-        # 转储表 migrations
-        # ------------------------------------------------------------
-        
-        CREATE TABLE `migrations` (
-          `version` varchar(255) COLLATE utf8mb3_unicode_ci NOT NULL
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
-        
-        
-        
         # 转储表 notification
         # ------------------------------------------------------------
         

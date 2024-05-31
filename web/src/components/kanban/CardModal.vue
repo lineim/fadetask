@@ -435,7 +435,9 @@
                   :box-shadow="false"
                   placeholder="请输入卡片描述"
                   default-open="edit"
+                  ref="mdEditor"
                   @fullScreen="mavonFullScreen"
+                  @imgAdd="imageAdded"
                   @save="descSave()"
                 />
                 <div style="float: right; margin-top: 10px;">
@@ -986,6 +988,8 @@
 </template>
 <script>
 import api from "@/api";
+import axios from "axios";
+
 // import moment from 'moment';
 import moment from 'moment-timezone';
 import store from "@/store";
@@ -1385,6 +1389,41 @@ export default {
 
         mavonFullScreen: function(status) {
           this.mavonToolbars = status ? fullToolbars : miniToolbars;
+        },
+
+        imageAdded: function(pos, file) {
+          if (file.size > 6291456) {
+            this.$message.error('文件体积不能超过6M！');
+          }
+          let formData = new FormData();
+          formData.append('attachment', file);
+          
+          axios({
+            url: this.uploadAction,
+            method: 'post',
+            data: formData,
+            headers: {
+              'Content-Type': 'multipart/form-data', 
+              "X-Auth-Token": store.state.token
+            },
+          }).then( r => {
+            const mdEditor = this.$refs.mdEditor;
+            const url = '/api/kanban/task/attachment?file=' + r.current.file_uri + '&time=' + Date.now();
+            mdEditor.$img2Url(pos, url);
+          })
+        },
+
+        uploadOssProcess: function(file, p, mdEditor, pos) {
+          const percent = parseInt(p*100);
+          if (percent >= 100) {
+            api.taskAttahcmentFinished({query: {taskId: this.cardId}, data: {uuid: file.uuid}}).then(resp => {
+              const attachment = resp.current;
+              this.downloadUrl(attachment).then(url => {
+                mdEditor.$img2Url(pos, url);
+              });
+              this.$message.success('文件《' + file.name + '》上传完成！');
+            });
+          }
         },
 
         titleInputFocus: function(title) {

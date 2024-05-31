@@ -8,6 +8,7 @@ export const miniToolbars = {
     ul: true, // 无序列表
     code: true, // code
     table: true, // 表格
+    imagelink: true, // 图片
     fullscreen: true, // 全屏编辑
     help: true, // 帮助
     save: true, // 保存（触发events中的save事件）

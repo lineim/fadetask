@@ -2157,6 +2157,10 @@ export default {
     border: 1px solid #fff;
     border-radius: 4px;
     transition: all 0.3s;
+    overflow: scroll;
+    img {
+      max-width: 840px;
+    }
     cursor: text;
     .empty {
       cursor: text;

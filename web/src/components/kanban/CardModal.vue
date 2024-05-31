@@ -1407,6 +1407,7 @@ export default {
               "X-Auth-Token": store.state.token
             },
           }).then( r => {
+            this.attachmentUploaded(r.attachments);
             const mdEditor = this.$refs.mdEditor;
             const url = '/api/kanban/task/attachment?file=' + r.current.file_uri + '&time=' + Date.now();
             mdEditor.$img2Url(pos, url);

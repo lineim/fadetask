@@ -61,6 +61,23 @@ class KanbanTask extends Base
         $project = $this->getProjectModule()->getProjectByKanbanId($task->kanban_id, ['name', 'uuid']);
         $kanban->project = $project;
         $task->kanban = $kanban;
+        $task->subtask_count = $this->getKanbanTaskModule()->getSubtasksCount($task->id);
+
+        return $this->json($task);
+    }
+
+    public function getSubtasksTree(Request $request, $kanbanId, $id)
+    {
+        $parentId = $id;
+        $user = $this->getUser($request);
+        $task = $this->getKanbanTaskModule()->getTask($id, ['id', 'uuid', 'title', 'parent_id']);
+        if ($task->parent_id) {
+            $parentId = $task->parent_id;
+            $task = $this->getKanbanTaskModule()->getTask($parentId, ['id', 'uuid', 'title', 'parent_id']);
+        }
+        $subtasks = $this->getKanbanTaskModule()->getSubtasks($parentId, $user['id'], ['id', 'uuid', 'title']);
+        
+        $task->subtasks = $subtasks;
 
         return $this->json($task);
     }
@@ -88,7 +105,9 @@ class KanbanTask extends Base
             'title' => $request->post('title', ''),
             'desc' => $request->post('desc', ''),
             'kanbanId' => $kanbanId,
+            'parentId' => $request->post('parent_id', 0),
         ];
+
         $startDate = $request->post('start_date', '');
         $endDate = $request->post('end_date', '');
         $listId = $request->post('list_id', 0);

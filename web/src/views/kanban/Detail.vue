@@ -419,6 +419,7 @@
       @archive="closeCardModal"
       @moved="closeCardModal"
       @moved-to-other-board="_cardMovedToOtherBoardFromModal"
+      @switch-to-task="_switchToTask"
     />
     <a-modal
       v-model="showCardQuickModal"
@@ -737,7 +738,7 @@ export default {
       },
       cardFormRules: {
         title: [
-          {required: true, message: '请输入卡片标题', trigger: 'blur'}
+          {required: true, message: '请输入任务标题', trigger: 'blur'}
         ]
       },
 
@@ -1638,16 +1639,25 @@ export default {
       }
     },
 
+    _switchToTask: function(id) {
+      this._clearCardIdInUrl();
+      this.onCardClick(id);
+    },
+
     // Card 模态框关闭
     closeCardModal: function() {
+      this._clearCardIdInUrl();
+      this.showCardModal = false;
+      this.showCardId = 0;
+    },
+
+    _clearCardIdInUrl: function() {
       let originHash = location.hash;
       const pos = originHash.indexOf('?');
       if (pos > -1) {
         let newHash = originHash.substring(0, pos);
         location.hash = newHash;
       }
-      this.showCardModal = false;
-      this.showCardId = 0;
     },
 
     // onCardChange 

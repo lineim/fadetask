@@ -97,6 +97,12 @@ export default [
       disableLoading: true
     },
     {
+      name: "cardSubtasks",
+      url: "/kanban/{boardId}/task/{taskId}/subtasks",
+      method: "GET",
+      disableLoading: true
+    },
+    {
       name: "cardActivity",
       url: "/kanban/{boardId}/task/{taskId}/activity",
       method: "GET",

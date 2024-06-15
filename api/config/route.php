@@ -87,6 +87,7 @@ Route::put('/api/kanban/{id}/list/{listId}', 'app\controller\KanbanList@update')
 // 看板任务
 Route::group('/api/kanban/{kanbanId}/task', function () {
     Route::get('/{id}', 'app\controller\KanbanTask@get');
+    Route::get('/{id}/subtasks', 'app\controller\KanbanTask@getSubtasksTree');
     Route::post('', 'app\controller\KanbanTask@add');
     Route::post('/{id}/date', 'app\controller\KanbanTask@setDate');
     Route::delete('/{id}/date', 'app\controller\KanbanTask@clearDueDate');

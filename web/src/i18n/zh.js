@@ -22,7 +22,7 @@ const zh = {
     action: "操作",
     access_denied: "权限不足！",
     last_view_and_go: "最近访问/前往",
-    convert_to_card: "转换为卡片",
+    convert_to_card: "转换为任务",
     assign: "处理人",
     due_date: '截止日期',
     load_more: "加载更多",
@@ -104,7 +104,7 @@ const zh = {
         },
         archive: {
             project: '归档项目',
-            cards: '已归档的卡片',
+            cards: '已归档的任务',
             list: '已归档的列',
             restore: '还原',
         }
@@ -142,7 +142,7 @@ const zh = {
         desc_placeholder: '请输入看板描述',
         desc_too_long_msg: '看板描述不超过128个字符',
         kanban_template_label: '模版看板',
-        kanban_template_help: '以当前看板为模版创建看板，将列、看板成员、标签及自定义字段等复制到新看板中，不复制卡片！',
+        kanban_template_help: '以当前看板为模版创建看板，将列、看板成员、标签及自定义字段等复制到新看板中，不复制任务！',
         kanban_template_help_short: '以当前看板为模版创建新看板',
         kanban_project_help: '在项目中创建看板时，会将项目成员自动加入到看板中！',
         close: '关闭',
@@ -170,7 +170,7 @@ const zh = {
         label: {
             label: '标签',
             new_label: '新标签',
-            delete_tips: '删除标签后，会将此标签从所有卡片中移除，是否继续？',
+            delete_tips: '删除标签后，会将此标签从所有任务中移除，是否继续？',
             form: {
                 name_label: '名称',
                 color_label: '颜色'
@@ -185,8 +185,8 @@ const zh = {
         },
         filter: {
             label: '筛选',
-            title: '卡片筛选',
-            keyword: '卡片关键字',
+            title: '任务筛选',
+            keyword: '任务关键字',
             priority: '优先级',
             tags: '标签',
             no_tags: '未设置标签',
@@ -230,7 +230,7 @@ const zh = {
             success_msg: '项目创建成功！',
         },
         stats: {
-            total_task: '卡片总数',
+            total_task: '任务总数',
             total_overdue_task_today: '今日到期',
             total_overdue_task: '总逾期数',
             total_finished_task: '完成数',
@@ -286,9 +286,9 @@ const zh = {
         },
         kanban: {
             name: '看板名称',
-            total_task_count: '卡片总数',
-            overdue_task_count: '已过期卡片数',
-            finished_task_count: '已完成卡片数',
+            total_task_count: '任务总数',
+            overdue_task_count: '已过期任务数',
+            finished_task_count: '已完成任务数',
             remove: '移除',
             remove_tips: '确认将看板移除项目？',
             removed_tips: '看板已移除项目',
@@ -314,19 +314,21 @@ const zh = {
         complete: {
             label_complete: "标记为完成列",
             label_uncomplete: "取消完成列",
-            tips: '完成列，卡片拖动到此列会自动标记完成。',
+            tips: '完成列，任务拖动到此列会自动标记完成。',
         },
         not_found: '列不存在！'
     },
     task: {
-        not_found: "卡片不存在！",
+        not_found: "任务不存在！",
+        parent_not_found: '父任务不存在！',
         detail: "详情",
         create_info: '创建信息',
+        subtask_label: '子任务',
         create: {
-            create_btn_label: "新卡片",
+            create_btn_label: "新任务",
             wip_limited_label: "WIP超限",
-            wip_limited_msg: "列卡片数已经达到wip限制，不能创建新卡片！",
-            success_msg: '卡片创建成功',
+            wip_limited_msg: "列任务数已经达到wip限制，不能创建新任务！",
+            success_msg: '任务创建成功',
         },
         member: {
             label: '成员',
@@ -339,7 +341,7 @@ const zh = {
             wip_limited_label: 'WIP超限',
         },
         drag: {
-            sort_can_drag_tips: '排序展示卡片，不能在当前列中拖拽卡片！',
+            sort_can_drag_tips: '排序展示任务，不能在当前列中拖拽任务！',
             wip_limit_can_drag_tips: '列【{listName}】的WIP限制为{wipLimit}，不能拖拽到该列！'
         },
         priority: {
@@ -350,29 +352,29 @@ const zh = {
         },
         archive: {
             label: "归档",
-            confirm_txt: "确认归档卡片？",
+            confirm_txt: "确认归档任务？",
             confirm_yes: "是",
             confirm_no: "否"
         },
         copy: {
-            label: '复制卡片',
-            title: '复制卡片',
+            label: '复制任务',
+            title: '复制任务',
             kanban: '看板',
             list: '列'
         },
         move: {
-            title: "移动卡片",
+            title: "移动任务",
             label: "移动",
             kanban: '看板',
             list: '列'
         },
         kanban_require_tips: '请选择目标看板',
         list_require_tips: '请选择列',
-        title_placeholder: "卡片标题",
+        title_placeholder: "任务标题",
         unarchive: {
             error: {
                 list_not_found: "列不存在！",
-                wip_limit: "列任卡片数已经达到wip限制，不能还原！如果要还原，请先从列中移除一个以上卡片！"
+                wip_limit: "列任任务数已经达到wip限制，不能还原！如果要还原，请先从列中移除一个以上任务！"
             }
         },
         attachment: {
@@ -391,7 +393,7 @@ const zh = {
         mark_as_done: '标记完成',
         wip: {
             too_large: "Wip过大，最大值为99！",
-            limited: "列表卡片数量超过WIP限制!",
+            limited: "列表任务数量超过WIP限制!",
         },
         share: {
             label: '分享',
@@ -401,8 +403,8 @@ const zh = {
     notification: {
         name: '通知',
         empty: '暂无通知',
-        join_task: '{who}将你加入到了卡片{card}',
-        task_due_notify: '你的卡片{card}将在{date}到期，请尽快处理',
+        join_task: '{who}将你加入到了任务{card}',
+        task_due_notify: '你的任务{card}将在{date}到期，请尽快处理',
         join_kanban: "{who}邀请你加入看板{kanban}"
     },
     custom_fields: {
@@ -419,7 +421,7 @@ const zh = {
             show_front: '在看板页面展示',
             add_success_msg: '字段新增成功',
         },
-        del_field_tips: "删除的字段将会从所有卡片中移除，是否继续？",
+        del_field_tips: "删除的字段将会从所有任务中移除，是否继续？",
         error: {
             name_error: '字段名称错误！',
             max_count: '自定字段数量超过最大限制！',
@@ -439,15 +441,15 @@ const zh = {
     },
     stats: {
         board: {
-            sub_title: "卡片统计"
+            sub_title: "任务统计"
         },
         task_count: {
-            per_list: "每列卡片数量",
-            per_member: "每个成员卡片数量",
-            per_label: "每个标签卡片数量",
+            per_list: "每列任务数量",
+            per_member: "每个成员任务数量",
+            per_label: "每个标签任务数量",
             no_member: "未设置用户",
             no_label: "无标签",
-            due_date: "过期时间卡片数量",
+            due_date: "过期时间任务数量",
             done: "已完成",
             due_soon: "即将过期",
             due_later: "稍后过期",

@@ -2237,15 +2237,13 @@ export default {
     flex: 1;
     .subtask-items {
       .subtask-item {
+        width: 234px;
         padding: 5px 10px;
         cursor: pointer;
         border-radius: 4px;
         overflow : hidden;
-        white-space: normal;
+        white-space: nowrap;
         text-overflow: ellipsis;
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 1; /*超出1行就显示省略号，可以填3或者其它正整数*/
         &:hover {
           background-color: #e8e8e8;
         }

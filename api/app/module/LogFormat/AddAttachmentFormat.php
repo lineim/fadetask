@@ -20,7 +20,7 @@ class AddAttachmentFormat extends BaseLogFormat
     {
         $userName = isset($this->users[$log->user_id]) ? $this->users[$log->user_id]->name : '';
         $fileName = $log->change->org_name;
-        if ($log->change->copy_from_id) {
+        if (property_exists($log, 'change') && property_exists($log, 'copy_from_id')) {
             $sourceFile = $this->getAttachmentModule()->getById($log->change->copy_from_id, ['task_id']);
             $sourceTask = $this->getKanbanTaskModule()->getTask($sourceFile->task_id, ['title']);
 

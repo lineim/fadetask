@@ -545,7 +545,7 @@
                   :key="check_list.id"
                 >
                   <div class="checklist-item-left">
-                    <div style="display: flex;">
+                    <div style="display: flex; align-items: center;">
                       <span
                         class="checklist-item-done-icon"
                         v-if="check_list.is_done"
@@ -2436,10 +2436,10 @@ export default {
 }
 
 .attachment-item {
-  padding: 5px 10px;
+  padding: 15px 10px;
   border-radius: 5px;
-  height: 42px; 
-  line-height: 42px;
+  height: 62px; 
+  line-height: 62px;
   &:hover {
     background: #fafbfc;
   }

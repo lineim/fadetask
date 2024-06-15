@@ -1,73 +1,71 @@
 <template>
   <div 
     class="custom-field mbl"
-    :style="wrapStyle"
   >
-    <div
+    <div 
+      class="field"
       v-for="field in customfields"
       :key="field.id"
     >
-      <div class="field">
-        <div class="mbxs">
-          <a-icon :type="typeIcons[field.type]" /> {{ field.name }}
-        </div>
-        <div>
-          <a-input
-            v-if="field.type == 'text'"
-            v-model="fieldVal[field.id]"
-            style="width: 100%;"
-            @keyup.enter="fieldValChange(field.id, $event)"
-            @blur="fieldValChange(field.id, $event)"
-          />
+      <div class="field-name">
+        <a-icon :type="typeIcons[field.type]" /> {{ field.name }}
+      </div>
+      <div class="field-val">
+        <a-input
+          v-if="field.type == 'text'"
+          v-model="fieldVal[field.id]"
+          style="width: 100%;"
+          @keyup.enter="fieldValChange(field.id, $event)"
+          @blur="fieldValChange(field.id, $event)"
+        />
 
-          <a-input-number 
-            v-if="field.type == 'number'" 
-            v-model="fieldVal[field.id]"
-            style="width: 100%;"
-            @keyup.enter="fieldValChange(field.id, $event)"
-            @blur="fieldValChange(field.id, $event)"
-          />
-          
-          <LiCheckBox
-            v-if="field.type == 'checkbox'"
-            :checked="fieldVal[field.id] && fieldVal[field.id] !== '0' ? true : false"
-            @change="checkboxValChange"
-            :value="field.id"
-            :label="fieldVal[field.id] ? $t('form.checkbox_checked') : $t('form.checkbox_uncheck')"
-            :styles="{height: '30px', lineHeight: '30px'}"
-          />
-            
-
-          <a-date-picker 
-            v-if="field.type == 'datetime'"
-            v-model="fieldVal[field.id]"
-            @change="customDateFieldChange(field.id)" 
-          />
+        <a-input-number 
+          v-if="field.type == 'number'" 
+          v-model="fieldVal[field.id]"
+          style="width: 100%;"
+          @keyup.enter="fieldValChange(field.id, $event)"
+          @blur="fieldValChange(field.id, $event)"
+        />
         
-          <a-select
-            v-if="field.type == 'dropdown'"
-            style="width: 100%;"
-            :default-value="{ key: fieldVal[field.id] }"
-            v-model="fieldVal[field.id]"
-            @change="dropdownOptionChange"
+        <LiCheckBox
+          v-if="field.type == 'checkbox'"
+          :checked="fieldVal[field.id] && fieldVal[field.id] !== '0' ? true : false"
+          @change="checkboxValChange"
+          :value="field.id"
+          :label="fieldVal[field.id] ? $t('form.checkbox_checked') : $t('form.checkbox_uncheck')"
+          :styles="{height: '30px', lineHeight: '30px'}"
+        />
+          
+
+        <a-date-picker 
+          v-if="field.type == 'datetime'"
+          v-model="fieldVal[field.id]"
+          @change="customDateFieldChange(field.id)" 
+        />
+      
+        <a-select
+          v-if="field.type == 'dropdown'"
+          style="width: 100%;"
+          :default-value="{ key: fieldVal[field.id] }"
+          v-model="fieldVal[field.id]"
+          @change="dropdownOptionChange"
+        >
+          <a-select-option
+            value=""
+            key=""
+            :fieldid="field.id"
           >
-            <a-select-option
-              value=""
-              key=""
-              :fieldid="field.id"
-            >
-              --
-            </a-select-option>
-            <a-select-option
-              v-for="option in field.options"
-              :value="option.id"
-              :key="option.id"
-              :fieldid="field.id"
-            >
-              {{ option.val }}
-            </a-select-option>
-          </a-select>
-        </div>
+            --
+          </a-select-option>
+          <a-select-option
+            v-for="option in field.options"
+            :value="option.id"
+            :key="option.id"
+            :fieldid="field.id"
+          >
+            {{ option.val }}
+          </a-select-option>
+        </a-select>
       </div>
     </div>
   </div>
@@ -203,11 +201,38 @@
         }
     }
 </script>
-<style scoped>
+<style scoped lang="less">
 .custom-field {
-  display: grid;
-  grid-gap: 15px;
-  grid-template-columns: repeat(3, 1fr);
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  .field {
+    display: flex;
+    .field-name {
+      width: 30%;
+      border-bottom: 1px solid #d9d9d9;
+      border-right: 1px solid #d9d9d9;
+      padding: 10px 20px;
+      height: 48px;
+    }
+    .field-val {
+      flex: 1;
+      border-bottom: 1px solid #d9d9d9;
+      border-right: 1px solid #d9d9d9;
+      padding: 10px 20px;
+      height: 48px;
+    }
+    .field-val:last-child {
+      border-right: none;
+    }
+    &:last-child {
+      .field-name {
+        border-bottom: none;
+      }
+      .field-val {
+        border-bottom: none;
+      }
+    }
+  }
 }
 
 .checkbox {

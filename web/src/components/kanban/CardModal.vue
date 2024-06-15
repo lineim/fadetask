@@ -433,7 +433,7 @@
                 <a-input 
                   size="large" 
                   v-model="card.title" 
-                  placeholder="large size"
+                  placeholder="Task title"
                   @pressEnter="titleSave()"
                   @blur="titleSave()"
                   @focus="titleInputFocus(card.title)"
@@ -1505,6 +1505,7 @@ export default {
             this.loadCardActivity();
             this.showTitleForm = false;
             this.cardChange();
+            this.loadSubtasks();
           });
         },
 

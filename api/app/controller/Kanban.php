@@ -122,6 +122,7 @@ class Kanban extends Base
         $kanbanList = $kanbanIndexList;
 
         $taskSearchCond = $this->buildSearchTaskCond($request, $kanbanId);
+        $taskSearchCond['parent_id'] = 0; // 过滤掉子任务
 
         $sortField = $request->get('sort', 'default');
         $sortMethod = $request->get('sort_method', 'desc');

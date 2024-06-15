@@ -204,6 +204,27 @@ class KanbanTask extends BaseModule
         return $model->orderBy('list_sort', 'ASC')->get($fields);
     }
 
+    public function getSubtasks($parentId, $userId, $fields = ['*'])
+    {
+        if (!$this->isKanbanMemberByTaskId($userId, $parentId)) {
+            throw new AccessDeniedException();
+        }
+        
+        return KanbanTaskModel::where('parent_id', $parentId)
+            ->where('is_delete', self::TASK_NOT_DELETED)
+            ->where('archived', self::TASK_NOT_ARCHIVED)
+            ->orderBy('id', 'ASC')
+            ->get($fields);
+    }
+
+    public function getSubtasksCount($parentId)
+    {
+        return KanbanTaskModel::where('parent_id', $parentId)
+            ->where('is_delete', self::TASK_NOT_DELETED)
+            ->where('archived', self::TASK_NOT_ARCHIVED)
+            ->count();
+    }
+
     public function searchKanbanTasks($kanbanId, array $cond, $sort = [], $fields = '*')
     {
         $taskTable = (new KanbanTaskModel())->getTable();
@@ -241,6 +262,9 @@ class KanbanTask extends BaseModule
 
         if (isset($cond['over_due'])) {
             $model = $model->where($taskTable.'.end_time', '<', time());
+        }
+        if (isset($cond['parent_id'])) {
+            $model = $model->where($taskTable.'.parent_id', $cond['parent_id']);
         }
 
         if (isset($cond['due'])) {
@@ -319,12 +343,28 @@ class KanbanTask extends BaseModule
     {
         $kanbanId = $task['kanbanId'] ?? 0;
         if (!$this->getKanbanModule()->isMember($kanbanId, $userId)) {
-            throw new AccessDeniedException('Access Denied!');
+            throw new AccessDeniedException();
         }
         $kanban = $this->getKanbanModule()->get($kanbanId, ['id']);
         if (!$kanban) {
             throw new ResourceNotFoundException("Kanban not found");
         }
+        $parentId = 0;
+        if ($task['parentId']) {
+            $parentTask = $this->getTask($task['parentId'], ['kanban_id', 'parent_id']);
+            if (!$parentTask) {
+                throw new ResourceNotFoundException('task.parent_not_found');
+            }
+            if ($parentTask->kanban_id != $kanbanId) {
+                throw new BusinessException('Parent task not belong the same kanban!');
+            }
+            if ($parentTask['parent_id'] > 0) { // 只支持两级子任务
+                $parentId = $parentTask['parent_id'];
+            } else {
+                $parentId = $task['parentId'];
+            }
+        }
+
         $title = $task['title'] ?? '';
         if (!$title) {
             throw new InvalidParamsException("Invalid Task Title");
@@ -346,6 +386,7 @@ class KanbanTask extends BaseModule
         }
 
         $newTask = new KanbanTaskModel();
+        $newTask->parent_id = $parentId;
         $newTask->title = $title;
         $newTask->uuid = Uuid::uuid4()->toString();
         $newTask->desc  = $task['desc'] ?? '';

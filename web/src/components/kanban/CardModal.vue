@@ -12,912 +12,950 @@
       wrap-class-name="card-modal-wrap"
     >
       <nav class="task-nav">
-        <div class="task-nav-breadcrumb">
-          <a-space v-if="loaded">
+        <a-space :size="'large'" v-if="loaded">
+          <a-badge :count="card.subtask_count">
+            <a-button type="primary" size="small" v-if="showSubTaskSide" @click="switchSubtaskSide" icon="menu-unfold"></a-button>
+            <a-button size="small" v-if="!showSubTaskSide" @click="switchSubtaskSide" icon="menu-fold"></a-button>
+          </a-badge>
+          <a-space :size="4">
             <div v-if="card.kanban.project.uuid">
               {{ card.kanban.project.name }}
             </div>
             <div v-if="card.kanban.project.uuid">
-              >
+              /
             </div>
             <div>
               {{ card.kanban.name }}
             </div>
             <div>
-              >
+              /
             </div>
             <div>
               {{ card.list.name }}
             </div>
           </a-space>
-        </div>
+        </a-space>
       </nav>
-      <div
-        v-if="loaded"
-        class="card-header"
-      >
-        <a-row>
-          <a-col
-            class="card-header-left"
-            :span="14"
-          >
-            <div class="d-flex">
-              <a-space 
-                align="center"
-                size="large"
-                style="flex: 80% 0;"
+      <a-row v-if="loaded">
+        <a-col v-if="showSubTaskSide" span="4" class="subtask-side">
+          <div class="subtask-side-title modal-main-label">
+            {{ $t('task.subtask_label') }}
+          </div>
+          <div class="subtask-side-body">
+            <a-space class="subtask-items" :size="2" direction="vertical">
+              <div 
+                class="subtask-item" 
+                v-bind:class="{'subtask-item-active': cardId == subtaskTree.id}"
+                @click.stop="switchToTask(subtaskTree.id)" 
               >
-                <!-- 改变列 -->
-                <div class="modal-card-list">
-                  <a-select
-                    v-model="card.list_id"
-                    style="width: 140px"
-                    @change="listChange"
-                  >
-                    <a-select-option
-                      v-for="list in card.kanban_list"
-                      :key="list.id"
-                      :value="list.id"
-                      :disabled="list.wip > 0 && list.task_count >= list.wip"
-                    >
-                      {{ list.name }}
-                      <span v-if="list.wip > 0 && list.task_count >= list.wip">
-                        ({{ $t('task.change.wip_limited_label') }})
-                      </span>
-                    </a-select-option>
-                  </a-select>
-                </div>
-
-                <!-- 完成状态 -->
-                <div>
-                  <a-tag
-                    :color="card.done ? '#2ea121' : ''"
-                    class="modal-card-done"
-                  >
-                    <LiCheckBox
-                      :styles="card.done ? {color: '#fff'} : {}"
-                      :checked="card.done" 
-                      :value="cardId" 
-                      :label="card.done ? $t('task.done') : $t('task.mark_as_done')" 
-                      @change="doneOrUndone"
-                    />
-                  </a-tag>
-                </div>
-
-                <!-- 卡片成员 -->
-                <div 
-                  class="members" 
+                <span class="circle-dot mrxs"></span>{{ subtaskTree.title }}
+              </div>
+              <div 
+                class="subtask-item mlm" 
+                v-for="subtask in subtaskTree.subtasks" 
+                :key="subtask.id" 
+                v-bind:class="{'subtask-item-active': cardId == subtask.id}"
+                @click.stop="switchToTask(subtask.id)" 
+              >
+                <span class="circle-dot mrxs"></span>{{ subtask.title }}
+              </div>
+            </a-space>
+            <div class="mtl">
+              <a-input-search placeholder="Add subtask" v-model="newSubtaskTitle" @search="addSubtask">
+                <a-button type="primary" :disabled="newSubtaskTitle.length <= 0" slot="enterButton">
+                  Add
+                </a-button>
+              </a-input-search>
+            </div>
+          </div>
+        </a-col>
+        <a-col :span="showSubTaskSide ? 20 : 24">
+          <a-row
+            class="card-header"
+          >
+            <a-col
+              class="card-header-left"
+              :span="17"
+            >
+              <div class="d-flex">
+                <a-space 
+                  align="center"
+                  size="large"
+                  style="flex: 80% 0;"
                 >
-                  <div
-                    class="modal-card-labels"
-                    style="display: inline-block;"
-                  >
-                    <MultiAvatar
-                      v-if="card.members.length > 0"
-                      :num="3"
-                      :members="card.members"
-                      @remove="removeMember"
-                      :close="true"
-                      :size="'large'"
-                      :style="{display: 'inline-flex', marginRight: '5px'}"
-                    />
+                  <!-- 改变列 -->
+                  <div class="modal-card-list">
+                    <a-select
+                      v-model="card.list_id"
+                      style="width: 140px"
+                      @change="listChange"
+                    >
+                      <a-select-option
+                        v-for="list in card.kanban_list"
+                        :key="list.id"
+                        :value="list.id"
+                        :disabled="list.wip > 0 && list.task_count >= list.wip"
+                      >
+                        {{ list.name }}
+                        <span v-if="list.wip > 0 && list.task_count >= list.wip">
+                          ({{ $t('task.change.wip_limited_label') }})
+                        </span>
+                      </a-select-option>
+                    </a-select>
+                  </div>
 
-                    <CardMember
-                      :card-id="cardId"
-                      :kanban-id="boardId"
-                      :title="$t('task.member.label')"
-                      @memberadd="memberAdded"
-                      @memberremove="memberRemoved"
+                  <!-- 完成状态 -->
+                  <div>
+                    <a-tag
+                      :color="card.done ? '#2ea121' : ''"
+                      class="modal-card-done"
+                    >
+                      <LiCheckBox
+                        :styles="card.done ? {color: '#fff'} : {}"
+                        :checked="card.done" 
+                        :value="cardId" 
+                        :label="card.done ? $t('task.done') : $t('task.mark_as_done')" 
+                        @change="doneOrUndone"
+                      />
+                    </a-tag>
+                  </div>
+
+                  <!-- 卡片成员 -->
+                  <div 
+                    class="members" 
+                  >
+                    <div
+                      class="modal-card-labels"
+                      style="display: inline-block;"
+                    >
+                      <MultiAvatar
+                        v-if="card.members.length > 0"
+                        :num="3"
+                        :members="card.members"
+                        @remove="removeMember"
+                        :close="true"
+                        :size="'large'"
+                        :style="{display: 'inline-flex', marginRight: '5px'}"
+                      />
+
+                      <CardMember
+                        :card-id="cardId"
+                        :kanban-id="boardId"
+                        :title="$t('task.member.label')"
+                        @memberadd="memberAdded"
+                        @memberremove="memberRemoved"
+                      >
+                        <div
+                          slot="trigger"
+                          class="cursor-pointer d-inline-block"
+                          :style="{verticalAlign: 'middle'}"
+                        >
+                          <FTGhostBtnVue
+                            shape="circle"
+                            icon="user-add"
+                            size="large"
+                          />
+                        </div>
+                      </CardMember>
+                    </div>
+                  </div>
+                  <div class="modal-card-divider">
+                    <a-divider type="vertical" />
+                  </div>
+
+                  <!-- 优先级 -->
+                  <div>
+                    <a-popover 
+                      title="优先级" 
+                      placement="bottomLeft" 
+                      trigger="click"
+                      class="no-arrow-popover"
+                      overlay-class-name="no-arrow-popover"
                     >
                       <div
-                        slot="trigger"
-                        class="cursor-pointer d-inline-block"
-                        :style="{verticalAlign: 'middle'}"
+                        class="lg-popover-content"
+                        slot="content"
                       >
-                        <FTGhostBtnVue
-                          shape="circle"
-                          icon="user-add"
-                          size="large"
-                        />
+                        <div 
+                          class="modal-label-list" 
+                          v-for="priority in priorities" 
+                          :key="priority.level" 
+                          @click="priorityChange(priority.level)"
+                        >
+                          <span 
+                            class="modal-label-color-block" 
+                            :style="{background: prioritiesColor[priority.level]}"
+                          >
+                            <span class="modal-label-select-icon">
+                              <a-icon 
+                                v-if="priorityChecked(priority.level)" 
+                                type="check" 
+                              />
+                            </span>
+                            {{ priority.name }}
+                            <!-- <span class="modal-label-edit-icon">
+                          <a-icon type="edit" />
+                        </span> -->
+                          </span>
+                        </div>
                       </div>
-                    </CardMember>
+
+                      <a-tag
+                        class="cursor-pointer"
+                        :color="prioritiesColor[card.priority]"
+                      >
+                        <a-icon
+                          type="flag"
+                        />
+                        {{ getPriorityName(card.priority) }}
+                      </a-tag>
+                    </a-popover>
+                  </div>
+                </a-space>
+                <div
+                  class="d-flex"
+                  style="flex: 0 20%; justify-content: end;"
+                >
+                  <a-space>
+                    <a-tooltip>
+                      <template slot="title">
+                        {{ $t('task.share.link') }}
+                      </template>
+                      <a-button 
+                        size="small" 
+                        icon="share-alt" 
+                        block 
+                        @click="shareLink()"
+                      >
+                        {{ $t('task.share.label') }}
+                      </a-button>
+                    </a-tooltip>
+                    <a-dropdown :trigger="['click']">
+                      <a
+                        class="ant-dropdown-link"
+                        @click="e => e.preventDefault()"
+                      >
+                        <a-icon type="more" />
+                      </a>
+                      <a-menu
+                        slot="overlay"
+                        class="pvs"
+                      >
+                        <CardCopy
+                          :card-id="cardId"
+                          :board-id="boardId"
+                          :title="$t('task.copy.title')"
+                          @copied="_cardCopiedInBoard"
+                        >
+                          <a-menu-item
+                            slot="trigger"
+                            class="card-more-menu-item"
+                            key="0"
+                          >
+                            <a class="text-center d-inline-block width-full fts13">
+                              <a-icon type="copy" />
+                              {{ $t('task.copy.label') }}
+                            </a>
+                          </a-menu-item>
+                        </CardCopy>
+
+                        <CardMove
+                          :card-id="cardId"
+                          :board-id="parseInt(boardId)"
+                          title="移动卡片"
+                          @moved="_cardMovedToOtherBoard"
+                        >
+                          <a-menu-item
+                            slot="trigger"
+                            class="card-more-menu-item"
+                            key="1"
+                          >
+                            <a class="text-center d-inline-block width-full fts13">
+                              <a-icon type="export" />
+                              移动卡片
+                            </a>
+                          </a-menu-item>
+                        </CardMove>
+
+                        <a-popconfirm
+                          title="确认归档卡片？"
+                          ok-text="是"
+                          cancel-text="否"
+                          placement="rightTop"
+                          @confirm="archive"
+                        >
+                          <a-menu-item
+                            key="2"
+                            class="card-more-menu-item"
+                          >
+                            <a class="text-center d-inline-block width-full fts13 pvhxs">
+                              <a-icon type="save" />
+                              归档卡片
+                            </a>
+                          </a-menu-item>
+                        </a-popconfirm>
+
+                        <!-- <a-menu-item key="3">
+                          <a-button 
+                            size="small" 
+                            icon="eye" 
+                            style="margin-bottom: 10px;" 
+                            block
+                          >
+                            关注
+                          </a-button>
+                        </a-menu-item> -->
+                      </a-menu>
+                    </a-dropdown>
+                  </a-space>
+                </div>
+              </div>
+            </a-col>
+            <a-col
+              :span="7"
+              class="card-header-right"
+            >
+              <a-space
+                size="large"
+              >
+                <!-- 创建时间 -->
+                <div class="create-date">
+                  <div class="card-info-item">
+                    {{ $t('task.create_info') }} 
+                  </div>
+                  <div class="card-info-val">
+                    {{ card.created_date|friendlyTime }} &nbsp;By&nbsp; {{ card.creator.name }}
                   </div>
                 </div>
                 <div class="modal-card-divider">
                   <a-divider type="vertical" />
                 </div>
-
-                <!-- 优先级 -->
-                <div>
-                  <a-popover 
-                    title="优先级" 
-                    placement="bottomLeft" 
-                    trigger="click"
-                    class="no-arrow-popover"
-                    overlay-class-name="no-arrow-popover"
-                  >
-                    <div
-                      class="lg-popover-content"
-                      slot="content"
-                    >
-                      <div 
-                        class="modal-label-list" 
-                        v-for="priority in priorities" 
-                        :key="priority.level" 
-                        @click="priorityChange(priority.level)"
-                      >
-                        <span 
-                          class="modal-label-color-block" 
-                          :style="{background: prioritiesColor[priority.level]}"
-                        >
-                          <span class="modal-label-select-icon">
-                            <a-icon 
-                              v-if="priorityChecked(priority.level)" 
-                              type="check" 
-                            />
-                          </span>
-                          {{ priority.name }}
-                          <!-- <span class="modal-label-edit-icon">
-                        <a-icon type="edit" />
-                      </span> -->
-                        </span>
-                      </div>
-                    </div>
-
+                <!-- 过期时间 -->
+                <div class="create-date">
+                  <div class="card-info-item">
+                    {{ $t('task.due_date') }} 
                     <a-tag
-                      class="cursor-pointer"
-                      :color="prioritiesColor[card.priority]"
+                      v-if="card.is_due_soon && !card.done"
+                      class="mlxs"
+                      color="#ffc60a"
                     >
-                      <a-icon
-                        type="flag"
-                      />
-                      {{ getPriorityName(card.priority) }}
+                      {{ $t('task.due_soon') }}
                     </a-tag>
-                  </a-popover>
+                    <a-tag
+                      v-if="card.overfall && !card.done"
+                      class="mlxs"
+                      color="#f54a45"
+                    >
+                      {{ $t('task.due_overfall') }}
+                    </a-tag>
+                  </div>
+                  <div class="card-info-val">
+                    <CardDatetimePicker
+                      :end-date="card.origin_end_date"
+                      :notify-interval="card.dueNotifyTimes"
+                      :notify-interval-default="String(card.due_notify_interval)"
+                      :text="card.origin_end_date|friendlyTime"
+                      :style="{width: 'none'}"
+                      @save="dueDateSave"
+                      @remove="dueDateRemove"
+                    />
+                  </div>
                 </div>
               </a-space>
-              <div
-                class="d-flex"
-                style="flex: 0 20%; justify-content: end;"
-              >
-                <a-space>
-                  <a-tooltip>
-                    <template slot="title">
-                      {{ $t('task.share.link') }}
-                    </template>
-                    <a-button 
-                      size="small" 
-                      icon="share-alt" 
-                      block 
-                      @click="shareLink()"
-                    >
-                      {{ $t('task.share.label') }}
-                    </a-button>
-                  </a-tooltip>
-                  <a-dropdown :trigger="['click']">
-                    <a
-                      class="ant-dropdown-link"
-                      @click="e => e.preventDefault()"
-                    >
-                      <a-icon type="more" />
-                    </a>
-                    <a-menu
-                      slot="overlay"
-                      class="pvs"
-                    >
-                      <CardCopy
-                        :card-id="cardId"
-                        :board-id="boardId"
-                        :title="$t('task.copy.title')"
-                        @copied="_cardCopiedInBoard"
-                      >
-                        <a-menu-item
-                          slot="trigger"
-                          class="card-more-menu-item"
-                          key="0"
-                        >
-                          <a class="text-center d-inline-block width-full fts13">
-                            <a-icon type="copy" />
-                            {{ $t('task.copy.label') }}
-                          </a>
-                        </a-menu-item>
-                      </CardCopy>
-
-                      <CardMove
-                        :card-id="cardId"
-                        :board-id="parseInt(boardId)"
-                        title="移动卡片"
-                        @moved="_cardMovedToOtherBoard"
-                      >
-                        <a-menu-item
-                          slot="trigger"
-                          class="card-more-menu-item"
-                          key="1"
-                        >
-                          <a class="text-center d-inline-block width-full fts13">
-                            <a-icon type="export" />
-                            移动卡片
-                          </a>
-                        </a-menu-item>
-                      </CardMove>
-
-                      <a-popconfirm
-                        title="确认归档卡片？"
-                        ok-text="是"
-                        cancel-text="否"
-                        placement="rightTop"
-                        @confirm="archive"
-                      >
-                        <a-menu-item
-                          key="2"
-                          class="card-more-menu-item"
-                        >
-                          <a class="text-center d-inline-block width-full fts13 pvhxs">
-                            <a-icon type="save" />
-                            归档卡片
-                          </a>
-                        </a-menu-item>
-                      </a-popconfirm>
-
-                      <!-- <a-menu-item key="3">
-                        <a-button 
-                          size="small" 
-                          icon="eye" 
-                          style="margin-bottom: 10px;" 
-                          block
-                        >
-                          关注
-                        </a-button>
-                      </a-menu-item> -->
-                    </a-menu>
-                  </a-dropdown>
-                </a-space>
-              </div>
-            </div>
-          </a-col>
-          <a-col
-            :span="10"
-            class="card-header-right"
+            </a-col>
+          </a-row>
+      
+          <a-row 
+            class="card-body"
           >
-            <a-space
-              size="large"
+            <a-col 
+              :span="17" 
+              class="card-body-left"
             >
-              <!-- 创建时间 -->
-              <div class="create-date">
-                <div class="card-info-item">
-                  {{ $t('task.create_info') }} 
-                </div>
-                <div class="card-info-val">
-                  {{ card.created_date|friendlyTime }} &nbsp;By&nbsp; {{ card.creator.name }}
-                </div>
-              </div>
-              <div class="modal-card-divider">
-                <a-divider type="vertical" />
-              </div>
-              <!-- 过期时间 -->
-              <div class="create-date">
-                <div class="card-info-item">
-                  {{ $t('task.due_date') }} 
-                  <a-tag
-                    v-if="card.is_due_soon && !card.done"
-                    class="mlxs"
-                    color="#ffc60a"
+              <!-- 标签 -->
+              <div 
+                class="labels mbl" 
+              >
+                <div class="modal-card-labels">
+                  <span 
+                    v-for="label in card.labels" 
+                    :key="label.id" 
+                    class="modal-card-label" 
+                    :style="{background: label.color}"
                   >
-                    {{ $t('task.due_soon') }}
-                  </a-tag>
-                  <a-tag
-                    v-if="card.overfall && !card.done"
-                    class="mlxs"
-                    color="#f54a45"
-                  >
-                    {{ $t('task.due_overfall') }}
-                  </a-tag>
-                </div>
-                <div class="card-info-val">
-                  <CardDatetimePicker
-                    :end-date="card.origin_end_date"
-                    :notify-interval="card.dueNotifyTimes"
-                    :notify-interval-default="String(card.due_notify_interval)"
-                    :text="card.origin_end_date|friendlyTime"
-                    :style="{width: 'none'}"
-                    @save="dueDateSave"
-                    @remove="dueDateRemove"
-                  />
-                </div>
-              </div>
-            </a-space>
-          </a-col>
-        </a-row>
-      </div>
-      <a-skeleton
-        v-if="!loaded"
-        :paragraph="{ rows: 4 }"
-        avatar
-        active
-      />
-      <a-row 
-        v-if="loaded" 
-        class="card-body"
-      >
-        <a-col 
-          :span="14" 
-          class="card-body-left"
-        >
-          <!-- 标签 -->
-          <div 
-            class="labels mbl" 
-          >
-            <div class="modal-card-labels">
-              <span 
-                v-for="label in card.labels" 
-                :key="label.id" 
-                class="modal-card-label" 
-                :style="{background: label.color}"
-              >
-                {{ label.name }}
-                <span
-                  class="label-del"
-                  @click="rmCardLabel(label.id)"
-                >
-                  <a-icon
-                    class="label-del-icon"
-                    type="close"
-                  />
-                </span>
-              </span>
-
-              <LabelPopover
-                :labels="card.kanban_labels"
-                :colors="card.kanban_label_colors"
-                :kanban-id="parseInt(boardId)"
-                :title="$t('task.tags.label')"
-                :selected-labels="card.labels"
-                @change="labelSelectChange"
-                @newlabel="newlabelCreated"
-                @labelupdated="labelupdated"
-                @labeldeleted="labeldeleted"
-                @sorted="sortedLabels"
-              >
-                <FTGhostBtnVue
-                  slot="trigger"
-                  shape="circle"
-                  icon="tags"
-                  size="small"
-                  :btnstyle="{height: '31px', lineHeight: '31px', borderRadius: '4px', minWidth: '64px', fontSize: '16px'}"
-                />
-                <!-- <a-button 
-                  slot="trigger"
-                  size="small"
-                  type="primary"
-                  style="height: 31px; line-height: 31px; border-radius: 4px; min-width: 64px;"
-                >
-                  <a-icon 
-                    type="tags" 
-                  />
-                </a-button> -->
-              </LabelPopover>
-            </div>
-          </div>
-
-          <!-- 标题展示/修改 -->
-          <div class="card-title mbl">
-            <a-input 
-              size="large" 
-              v-model="card.title" 
-              placeholder="large size"
-              @pressEnter="titleSave()"
-              @blur="titleSave()"
-              @focus="titleInputFocus(card.title)"
-            />
-          </div>
-          <!-- 描述 -->
-          <div class="card-desc mbl">
-            <div 
-              class="card-desc-container"
-              :style="[showDescForm ? {borderColor: '#fff'} : {}]"
-            >
-              <div
-                class="empty"
-                v-if="!card.desc && !showDescForm"
-                @click="desEdit()"
-              >
-                <span>点击编辑描述</span>
-              </div>
-              <div
-                class="desc-editor clearfix"
-                v-if="showDescForm"
-              >
-                <mavon-editor
-                  v-model="card.desc"
-                  :ishljs="true"
-                  :subfield="false"
-                  :toolbars="mavonToolbars"
-                  :box-shadow="false"
-                  placeholder="请输入卡片描述"
-                  default-open="edit"
-                  ref="mdEditor"
-                  @fullScreen="mavonFullScreen"
-                  @imgAdd="imageAdded"
-                  @save="descSave()"
-                />
-                <div style="float: right; margin-top: 10px;">
-                  <a-space>
-                    <a-button
-                      @click="cancelDescEdit()"
+                    {{ label.name }}
+                    <span
+                      class="label-del"
+                      @click="rmCardLabel(label.id)"
                     >
-                      {{ $t('cancel') }}
-                    </a-button>
-                    <a-button
-                      @click="descSave()"
+                      <a-icon
+                        class="label-del-icon"
+                        type="close"
+                      />
+                    </span>
+                  </span>
+
+                  <LabelPopover
+                    :labels="card.kanban_labels"
+                    :colors="card.kanban_label_colors"
+                    :kanban-id="parseInt(boardId)"
+                    :title="$t('task.tags.label')"
+                    :selected-labels="card.labels"
+                    @change="labelSelectChange"
+                    @newlabel="newlabelCreated"
+                    @labelupdated="labelupdated"
+                    @labeldeleted="labeldeleted"
+                    @sorted="sortedLabels"
+                  >
+                    <FTGhostBtnVue
+                      slot="trigger"
+                      shape="circle"
+                      icon="tags"
+                      size="small"
+                      :btnstyle="{height: '31px', lineHeight: '31px', borderRadius: '4px', minWidth: '64px', fontSize: '16px'}"
+                    />
+                    <!-- <a-button 
+                      slot="trigger"
+                      size="small"
                       type="primary"
+                      style="height: 31px; line-height: 31px; border-radius: 4px; min-width: 64px;"
+                    >
+                      <a-icon 
+                        type="tags" 
+                      />
+                    </a-button> -->
+                  </LabelPopover>
+                </div>
+              </div>
+
+              <!-- 标题展示/修改 -->
+              <div class="card-title mbl">
+                <a-input 
+                  size="large" 
+                  v-model="card.title" 
+                  placeholder="large size"
+                  @pressEnter="titleSave()"
+                  @blur="titleSave()"
+                  @focus="titleInputFocus(card.title)"
+                />
+              </div>
+              <!-- 描述 -->
+              <div class="card-desc mbl">
+                <div 
+                  class="card-desc-container"
+                  :style="[showDescForm ? {borderColor: '#fff'} : {}]"
+                >
+                  <div
+                    class="empty"
+                    v-if="!card.desc && !showDescForm"
+                    @click="desEdit()"
+                  >
+                    <span>点击编辑描述</span>
+                  </div>
+                  <div
+                    class="desc-editor clearfix"
+                    v-if="showDescForm"
+                  >
+                    <mavon-editor
+                      v-model="card.desc"
+                      :ishljs="true"
+                      :subfield="false"
+                      :toolbars="mavonToolbars"
+                      :box-shadow="false"
+                      placeholder="请输入卡片描述"
+                      default-open="edit"
+                      ref="mdEditor"
+                      @fullScreen="mavonFullScreen"
+                      @imgAdd="imageAdded"
+                      @save="descSave()"
+                    />
+                    <div style="float: right; margin-top: 10px;">
+                      <a-space>
+                        <a-button
+                          @click="cancelDescEdit()"
+                        >
+                          {{ $t('cancel') }}
+                        </a-button>
+                        <a-button
+                          @click="descSave()"
+                          type="primary"
+                        >
+                          {{ $t('submit') }}
+                        </a-button>
+                      </a-space>
+                    </div>
+                  </div>
+                  <div
+                    v-if="card.desc && !showDescForm"
+                    @click="desEdit()"
+                  >
+                    <vue-markdown
+                      :source="card.desc"
+                      @rendered="markdownUpdated"
+                    />
+                  </div>
+                </div>
+              </div>
+              <!-- 自定义字段 -->
+              <div
+                class="desc mbxl"
+              >
+                <div class="modal-main-label">
+                  <span class="mrs">自定义字段</span>
+                  <CustomField
+                    :customfields="card.customfields"
+                    :colors="card.kanban_label_colors"
+                    :kanban-id="boardId"
+                    :title="$t('custom_fields.label')"
+                    :selected-labels="card.labels"
+                    @newcustomfield="newCustomFieldCreated"
+                    @optionchange="customFieldOptionChange"
+                    @optionadded="customFieldOptionAdded"
+                    @customfieldeleted="customFieldDel"
+                    @namechanged="cardChange"
+                    @showfrontchanged="cardChange"
+                  >
+                    <FTGhostBtnVue
+                      slot="trigger"
+                      :text="''"
+                      :icon="'plus'"
+                      :shape="'circle'"
+                      :size="'small'"
+                    />
+                  </CustomField>
+                </div>
+                <CustomFieldSet
+                  :customfields="card.customfields"
+                  :customfieldvals="card.customfield_vals"
+                  :card-id="cardId"
+                  @field_val_change="fieldValChange"
+                  :wrap-style="{padding: '0 10px'}"
+                />
+              </div>
+              <!-- 检查项 -->
+              <div 
+                class="checklist mbxl"
+              >
+                <div class="modal-main-label">
+                  检查项
+                </div>
+                <div 
+                  class="checklist-item" 
+                  v-for="check_list in card.check_list" 
+                  :key="check_list.id"
+                >
+                  <div class="checklist-item-left">
+                    <div style="display: flex;">
+                      <span
+                        class="checklist-item-done-icon"
+                        v-if="check_list.is_done"
+                        @click="checkListChange(check_list.id, false)"
+                      ><a-icon
+                        theme="filled"
+                        type="check-circle"
+                      /></span>
+                      <span
+                        class="checklist-item-undone-icon"
+                        v-else
+                        @click="checkListChange(check_list.id, true)"
+                      />
+                      <div
+                        class="d-inline-block"
+                        style="padding-left: 5px; flex: 0 90%"
+                      >
+                        <a-input
+                          v-model="check_list.title"
+                          size="small"
+                          :placeholder="$t('checklist.title_required_tips')"
+                          @focus="updateCheckListFocus(check_list.title)"
+                          @pressEnter="updateCheckList(check_list.id, check_list.title)"
+                          @blur="updateCheckList(check_list.id, check_list.title)"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="checklist-item-right">
+                    <a-space
+                      :size="'middle'"
+                      :style="{verticalAlign: 'middle'}"
+                    >
+                      <div>
+                        <CheckListMember
+                          :card-id="cardId"
+                          :kanban-id="parseInt(boardId)"
+                          :checklist-id="check_list.id"
+                          :title="$t('member')"
+                          :popover-style="{'display': 'inline-block', 'cursor': 'pointer', float: 'right'}"
+                          @memberadd="checkListMemberAdd"
+                          @memberremove="checkListMemberRm"
+                        >
+                          <FTGhostBtnVue
+                            slot="trigger"
+                            :text="''"
+                            :icon="'user-add'"
+                            :shape="'circle'"
+                            :btnstyle="{verticalAlign: 'middle'}"
+                            :size="'small'"
+                          />
+                        </CheckListMember>
+                        <MultiAvatar
+                          v-if="check_list.members.length > 0"
+                          :members="check_list.members"
+                          @remove="checkListMemberRm"
+                          :size="'small'"
+                        />
+                      </div>
+                      <div>
+                        <span
+                          v-if="check_list.due_time"
+                        >
+                          {{ timeToDate(check_list.due_time) }}
+                        </span>
+
+                        <LiDatePicker
+                          :id="check_list.id"
+                          :init-date="check_list.due_time"
+                          @change="checkListDueDateChange"
+                          @clean="checkListDueDateClean"
+                        >
+                          <FTGhostBtnVue
+                            slot="title"
+                            :text="''"
+                            :icon="'calendar'"
+                            :shape="'circle'"
+                            :size="'small'"
+                            :btnstyle="{verticalAlign: 'middle'}"
+                          />
+                        </LiDatePicker>
+                      </div>
+                      <a-dropdown
+                        :trigger="['click']"
+                      >
+                        <a
+                          class="ant-dropdown-link"
+                          @click="e => e.preventDefault()"
+                        >
+                          <a-icon type="more" />
+                        </a>
+                        <a-menu slot="overlay">
+                          <a-menu-item>
+                            <a-popconfirm
+                              :title="$t('checklist.del_confirm_msg')"
+                              :ok-text="$t('yes')"
+                              :cancel-text="$t('no')"
+                              @confirm="delCheckList(check_list)"
+                            >
+                              <a 
+                                href="javascript:;" 
+                                class="del-icon"
+                              ><a-icon
+                                class="mrs"
+                                type="delete"
+                              />{{ $t('delete') }}</a>
+                            </a-popconfirm>
+                          </a-menu-item>
+                          <!-- <a-menu-item>
+                            <a href="javascript:;"><a-icon class="mrs" type="credit-card" />{{ $t('convert_to_card') }}</a>
+                          </a-menu-item> -->
+                        </a-menu>
+                      </a-dropdown>
+                    </a-space>
+                  </div>
+                </div>
+                <div class="checklist-item mtl">
+                  <a-space size="middle">
+                    <a-input
+                      v-model="currentCheckList.title"
+                      :placeholder="$t('checklist.new_placeholder')"
+                      @pressEnter="checkListSave()"
+                      style="width: 360px"
+                    />
+
+                    <div>
+                      <MultiAvatar
+                        v-if="newCheckListMembers.length > 0"
+                        :members="newCheckListMembers"
+                        :close="true"
+                        @remove="_newCheckListMemberRm"
+                        :styles="{'display': 'inlineFlex', 'align-items': 'start'}"
+                      />
+                      <CheckListMember
+                        :card-id="cardId"
+                        :kanban-id="parseInt(boardId)"
+                        :checklist-id="0"
+                        :selected-ids="newCheckListMemberIds"
+                        :title="$t('member')"
+                        @memberadd="newCheckListMemberAdd"
+                        @memberremove="newCheckListMemberRm"
+                        placement="rightBottom"
+                      >
+                        <FTGhostBtnVue
+                          slot="trigger"
+                          :text="''"
+                          :icon="'user-add'"
+                          :shape="'circle'"
+                          :btnstyle="{verticalAlign: 'middle'}"
+                        />
+                      </CheckListMember>
+                    </div>
+
+                    <LiDatePicker
+                      :init-date="null"
+                      @change="newCheckListDueDateChange"
+                      @clean="newCheckListDueDateClean"
+                    >
+                      <span
+                        class="cursor-pointer"
+                        slot="title"
+                      >
+                        <span
+                          class="mrxs"
+                          v-if="newCheckListDuedate"
+                          :style="{verticalAlign: 'middle'}"
+                        >{{ newCheckListDuedate + ' 00:00:00' | friendlyTime }}</span>
+                        <FTGhostBtnVue
+                          slot="trigger"
+                          :text="''"
+                          :icon="'calendar'"
+                          :shape="'circle'"
+                          :btnstyle="{verticalAlign: 'middle'}"
+                        />
+                      </span>
+                    </LiDatePicker>
+                    <a-button
+                      type="primary"
+                      :disabled="!currentCheckList.title || checklistSubmiting"
+                      @click="checkListSave"
                     >
                       {{ $t('submit') }}
                     </a-button>
                   </a-space>
                 </div>
               </div>
-              <div
-                v-if="card.desc && !showDescForm"
-                @click="desEdit()"
+              <!-- 附件 -->
+              <div 
+                class="attachment mbl" 
               >
-                <vue-markdown
-                  :source="card.desc"
-                  @rendered="markdownUpdated"
-                />
-              </div>
-            </div>
-          </div>
-          <!-- 自定义字段 -->
-          <div
-            class="desc mbxl"
-          >
-            <div class="modal-main-label">
-              <span class="mrs">自定义字段</span>
-              <CustomField
-                :customfields="card.customfields"
-                :colors="card.kanban_label_colors"
-                :kanban-id="boardId"
-                :title="$t('custom_fields.label')"
-                :selected-labels="card.labels"
-                @newcustomfield="newCustomFieldCreated"
-                @optionchange="customFieldOptionChange"
-                @optionadded="customFieldOptionAdded"
-                @customfieldeleted="customFieldDel"
-                @namechanged="cardChange"
-                @showfrontchanged="cardChange"
-              >
-                <FTGhostBtnVue
-                  slot="trigger"
-                  :text="''"
-                  :icon="'plus'"
-                  :shape="'circle'"
-                  :size="'small'"
-                />
-              </CustomField>
-            </div>
-            <CustomFieldSet
-              :customfields="card.customfields"
-              :customfieldvals="card.customfield_vals"
-              :card-id="cardId"
-              @field_val_change="fieldValChange"
-              :wrap-style="{padding: '0 10px'}"
-            />
-          </div>
-          <!-- 检查项 -->
-          <div 
-            class="checklist mbxl"
-          >
-            <div class="modal-main-label">
-              检查项
-            </div>
-            <div 
-              class="checklist-item" 
-              v-for="check_list in card.check_list" 
-              :key="check_list.id"
-            >
-              <div class="checklist-item-left">
-                <div style="display: flex;">
-                  <span
-                    class="checklist-item-done-icon"
-                    v-if="check_list.is_done"
-                    @click="checkListChange(check_list.id, false)"
-                  ><a-icon
-                    theme="filled"
-                    type="check-circle"
-                  /></span>
-                  <span
-                    class="checklist-item-undone-icon"
-                    v-else
-                    @click="checkListChange(check_list.id, true)"
-                  />
-                  <div
-                    class="d-inline-block"
-                    style="padding-left: 5px; flex: 0 90%"
+                <div class="modal-main-label">
+                  {{ $t('task.attachment.label') }}
+                  <CardAttachment
+                    :card-id="cardId"
+                    :kanban-id="boardId"
+                    @success="attachmentUploaded"
+                    @deleted="attachmentDeleted"
+                    title="上传附件"
                   >
-                    <a-input
-                      v-model="check_list.title"
-                      size="small"
-                      :placeholder="$t('checklist.title_required_tips')"
-                      @focus="updateCheckListFocus(check_list.title)"
-                      @pressEnter="updateCheckList(check_list.id, check_list.title)"
-                      @blur="updateCheckList(check_list.id, check_list.title)"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div class="checklist-item-right">
-                <a-space
-                  :size="'middle'"
-                  :style="{verticalAlign: 'middle'}"
-                >
-                  <div>
-                    <CheckListMember
-                      :card-id="cardId"
-                      :kanban-id="parseInt(boardId)"
-                      :checklist-id="check_list.id"
-                      :title="$t('member')"
-                      :popover-style="{'display': 'inline-block', 'cursor': 'pointer', float: 'right'}"
-                      @memberadd="checkListMemberAdd"
-                      @memberremove="checkListMemberRm"
-                    >
-                      <FTGhostBtnVue
-                        slot="trigger"
-                        :text="''"
-                        :icon="'user-add'"
-                        :shape="'circle'"
-                        :btnstyle="{verticalAlign: 'middle'}"
-                        :size="'small'"
-                      />
-                    </CheckListMember>
-                    <MultiAvatar
-                      v-if="check_list.members.length > 0"
-                      :members="check_list.members"
-                      @remove="checkListMemberRm"
+                    <FTGhostBtnVue
+                      slot="trigger"
+                      :text="''"
+                      :icon="'plus'"
+                      :shape="'circle'"
                       :size="'small'"
                     />
-                  </div>
-                  <div>
-                    <span
-                      v-if="check_list.due_time"
-                    >
-                      {{ timeToDate(check_list.due_time) }}
-                    </span>
-
-                    <LiDatePicker
-                      :id="check_list.id"
-                      :init-date="check_list.due_time"
-                      @change="checkListDueDateChange"
-                      @clean="checkListDueDateClean"
-                    >
-                      <FTGhostBtnVue
-                        slot="title"
-                        :text="''"
-                        :icon="'calendar'"
-                        :shape="'circle'"
-                        :size="'small'"
-                        :btnstyle="{verticalAlign: 'middle'}"
-                      />
-                    </LiDatePicker>
-                  </div>
-                  <a-dropdown
-                    :trigger="['click']"
-                  >
-                    <a
-                      class="ant-dropdown-link"
-                      @click="e => e.preventDefault()"
-                    >
-                      <a-icon type="more" />
-                    </a>
-                    <a-menu slot="overlay">
-                      <a-menu-item>
-                        <a-popconfirm
-                          :title="$t('checklist.del_confirm_msg')"
-                          :ok-text="$t('yes')"
-                          :cancel-text="$t('no')"
-                          @confirm="delCheckList(check_list)"
-                        >
-                          <a 
-                            href="javascript:;" 
-                            class="del-icon"
-                          ><a-icon
-                            class="mrs"
-                            type="delete"
-                          />{{ $t('delete') }}</a>
-                        </a-popconfirm>
-                      </a-menu-item>
-                      <!-- <a-menu-item>
-                        <a href="javascript:;"><a-icon class="mrs" type="credit-card" />{{ $t('convert_to_card') }}</a>
-                      </a-menu-item> -->
-                    </a-menu>
-                  </a-dropdown>
-                </a-space>
-              </div>
-            </div>
-            <div class="checklist-item mtl">
-              <a-space size="middle">
-                <a-input
-                  v-model="currentCheckList.title"
-                  :placeholder="$t('checklist.new_placeholder')"
-                  @pressEnter="checkListSave()"
-                  style="width: 360px"
-                />
-
-                <div>
-                  <MultiAvatar
-                    v-if="newCheckListMembers.length > 0"
-                    :members="newCheckListMembers"
-                    :close="true"
-                    @remove="_newCheckListMemberRm"
-                    :styles="{'display': 'inlineFlex', 'align-items': 'start'}"
-                  />
-                  <CheckListMember
-                    :card-id="cardId"
-                    :kanban-id="parseInt(boardId)"
-                    :checklist-id="0"
-                    :selected-ids="newCheckListMemberIds"
-                    :title="$t('member')"
-                    @memberadd="newCheckListMemberAdd"
-                    @memberremove="newCheckListMemberRm"
-                    placement="rightBottom"
-                  >
-                    <FTGhostBtnVue
-                      slot="trigger"
-                      :text="''"
-                      :icon="'user-add'"
-                      :shape="'circle'"
-                      :btnstyle="{verticalAlign: 'middle'}"
-                    />
-                  </CheckListMember>
+                  </CardAttachment>
                 </div>
-
-                <LiDatePicker
-                  :init-date="null"
-                  @change="newCheckListDueDateChange"
-                  @clean="newCheckListDueDateClean"
-                >
-                  <span
-                    class="cursor-pointer"
-                    slot="title"
+                <div>
+                  <div 
+                    class="attachment-item" 
+                    v-for="attachment in card.attachments" 
+                    :key="attachment.id"
                   >
-                    <span
-                      class="mrxs"
-                      v-if="newCheckListDuedate"
-                      :style="{verticalAlign: 'middle'}"
-                    >{{ newCheckListDuedate + ' 00:00:00' | friendlyTime }}</span>
-                    <FTGhostBtnVue
-                      slot="trigger"
-                      :text="''"
-                      :icon="'calendar'"
-                      :shape="'circle'"
-                      :btnstyle="{verticalAlign: 'middle'}"
+                    <a 
+                      @click="previewAttachment(attachment)"
+                      href="javascript:;"
+                      class="d-inline-block"
+                      style="height: 32px; line-height: 32px;"
+                    >
+                      <!-- <iconfont
+                        class="attachment-icon"
+                        type="icon-icon_gif"
+                      /> -->
+                      <AttachmentIconVue
+                        class="mrm"
+                        :type="attachment.extension"
+                      />
+                      <div
+                        class="d-inline-block"
+                        style="vertical-align: top;"
+                      >{{ attachment.org_name }}</div>
+                    </a>
+                    <a-popconfirm
+                      title="确认删除附件？"
+                      ok-text="是"
+                      cancel-text="否"
+                      @confirm="delAttachment(attachment)"
+                    >
+                      <a-tooltip>
+                        <template slot="title">
+                          {{ $t('task.attachment.del') }}
+                        </template>
+                        <a 
+                          href="#" 
+                          class="pull-right"
+                        ><a-icon type="delete" /></a>
+                      </a-tooltip>
+                    </a-popconfirm>
+                    <a-tooltip>
+                      <template slot="title">
+                        {{ $t('task.attachment.download') }}
+                      </template>
+                      <a
+                        class="pull-right mrs"
+                        href="javascript:;" 
+                        @click="downloadAttachment(attachment)"
+                      >
+                        <a-icon type="download" />
+                      </a>
+                    </a-tooltip>
+
+                    <a-tooltip>
+                      <template slot="title">
+                        {{ $t('task.attachment.preview') }}
+                      </template>
+                      <a
+                        class="pull-right mrs"
+                        @click="previewAttachment(attachment)"
+                        href="javascript:;"
+                      >
+                        <a-icon type="eye" />
+                      </a>
+                    </a-tooltip>
+                  </div>
+                </div>
+              </div>
+            </a-col>
+            <a-col 
+              class="card-body-right" 
+              :span="7"
+            >
+              <div class="desc mbs card-comment">
+                <a-timeline class="mtm">
+                  <a-timeline-item 
+                    v-for="activity in activities" 
+                    :key="activity.id"
+                    color="rgb(241, 75, 169)"
+                    style="margin-left: 2px; padding-bottom: 5px;"
+                  >
+                    <a-icon 
+                      v-if="activity.action == 'add_comment'"
+                      slot="dot" 
+                      type="message" 
+                      style="color: rgb(241, 75, 169);" 
                     />
-                  </span>
-                </LiDatePicker>
+                    <div v-if="activity.action == 'add_comment'">
+                      <a-comment
+                        :author="activity.user.name"
+                        class="card-comment-item"
+                      >
+                        <a-avatar 
+                          slot="avatar"
+                          style="color: rgb(255, 255, 255);; backgroundColor: rgb(24, 144, 255);"
+                        >
+                          {{ activity.user.name.slice(0, 1) }}
+                        </a-avatar>
+                        <template
+                          slot="actions"
+                          v-if="activity.user.id == userId && !isCommentEditing(activity.id)"
+                        >
+                          <span
+                            @click="editComment(activity.id)"
+                          ><a-icon type="edit" /></span>
+                          <span>
+                            <a-popconfirm
+                              title="确认删除评论？"
+                              ok-text="是"
+                              cancel-text="否"
+                              @confirm="commentDelete(activity.id)"
+                            >
+                              <a-icon type="delete" />
+                            </a-popconfirm>
+                          </span>
+                        </template>
+                        <div slot="content">
+                          <p v-if="!isCommentEditing(activity.id)">
+                            {{ activity.show_msg }}
+                          </p>
+                          <div v-if="isCommentEditing(activity.id)">
+                            <a-form-model>
+                              <a-form-item :style="{'marginBottom': '10px'}">
+                                <a-textarea
+                                  :rows="2"
+                                  v-model="activity.show_msg"
+                                  :style="{'width': '100%'}"
+                                />
+                              </a-form-item>
+                              <a-form-item>
+                                <a-button
+                                  size="small"
+                                  @click="cancelEditComment(activity.id)"
+                                  class="mrs"
+                                >
+                                  {{ $t('cancel') }}
+                                </a-button>
+                                <a-button
+                                  size="small"
+                                  html-type="submit"
+                                  :loading="editCommentSubmitting"
+                                  type="primary"
+                                  :disabled="isEmptyCommentContent(activity.id)"
+                                  @click="updateComment(activity.id)"
+                                >
+                                  {{ $t('save') }}
+                                </a-button>
+                              </a-form-item>
+                            </a-form-model>
+                          </div>
+                        </div>
+
+                        <a-tooltip
+                          slot="datetime"
+                          :title="activity.sample_date"
+                        >
+                          <span>{{ activity.sample_date }}</span>
+                        </a-tooltip>
+                      </a-comment>
+                    </div>
+                    <div v-else>
+                      <p>
+                        {{ activity.show_msg }}
+                        <span class="fts12 mlm">
+                          {{ activity.sample_date }}
+                        </span>
+                      </p>
+                    </div>
+                  </a-timeline-item>
+                </a-timeline>
+              </div>
+              <div calss="card-comment-add">
+                <a-textarea
+                  :rows="2"
+                  placeholder="评论内容"
+                  v-model="commentForm.value"
+                  @change="commentChange"
+                  class="mbm"
+                />
                 <a-button
+                  class="pull-right"
+                  html-type="submit"
+                  :loading="commentSubmitting"
                   type="primary"
-                  :disabled="!currentCheckList.title || checklistSubmiting"
-                  @click="checkListSave"
+                  :disabled="commentForm.value === '' || commentSubmitting"
+                  @click="commentSubmit"
                 >
                   {{ $t('submit') }}
                 </a-button>
-              </a-space>
-            </div>
-          </div>
-          <!-- 附件 -->
-          <div 
-            class="attachment mbl" 
-          >
-            <div class="modal-main-label">
-              {{ $t('task.attachment.label') }}
-              <CardAttachment
-                :card-id="cardId"
-                :kanban-id="boardId"
-                @success="attachmentUploaded"
-                @deleted="attachmentDeleted"
-                title="上传附件"
-              >
-                <FTGhostBtnVue
-                  slot="trigger"
-                  :text="''"
-                  :icon="'plus'"
-                  :shape="'circle'"
-                  :size="'small'"
-                />
-              </CardAttachment>
-            </div>
-            <div>
-              <div 
-                class="attachment-item" 
-                v-for="attachment in card.attachments" 
-                :key="attachment.id"
-              >
-                <a 
-                  @click="previewAttachment(attachment)"
-                  href="javascript:;"
-                  class="d-inline-block"
-                  style="height: 32px; line-height: 32px;"
-                >
-                  <!-- <iconfont
-                    class="attachment-icon"
-                    type="icon-icon_gif"
-                  /> -->
-                  <AttachmentIconVue
-                    class="mrm"
-                    :type="attachment.extension"
-                  />
-                  <div
-                    class="d-inline-block"
-                    style="vertical-align: top;"
-                  >{{ attachment.org_name }}</div>
-                </a>
-                <a-popconfirm
-                  title="确认删除附件？"
-                  ok-text="是"
-                  cancel-text="否"
-                  @confirm="delAttachment(attachment)"
-                >
-                  <a-tooltip>
-                    <template slot="title">
-                      {{ $t('task.attachment.del') }}
-                    </template>
-                    <a 
-                      href="#" 
-                      class="pull-right"
-                    ><a-icon type="delete" /></a>
-                  </a-tooltip>
-                </a-popconfirm>
-                <a-tooltip>
-                  <template slot="title">
-                    {{ $t('task.attachment.download') }}
-                  </template>
-                  <a
-                    class="pull-right mrs"
-                    href="javascript:;" 
-                    @click="downloadAttachment(attachment)"
-                  >
-                    <a-icon type="download" />
-                  </a>
-                </a-tooltip>
-
-                <a-tooltip>
-                  <template slot="title">
-                    {{ $t('task.attachment.preview') }}
-                  </template>
-                  <a
-                    class="pull-right mrs"
-                    @click="previewAttachment(attachment)"
-                    href="javascript:;"
-                  >
-                    <a-icon type="eye" />
-                  </a>
-                </a-tooltip>
               </div>
-            </div>
-          </div>
-        </a-col>
-        <a-col 
-          class="card-body-right" 
-          :span="10"
-        >
-          <div class="desc mbs card-comment">
-            <a-timeline class="mtm">
-              <a-timeline-item 
-                v-for="activity in activities" 
-                :key="activity.id"
-                color="rgb(241, 75, 169)"
-                style="margin-left: 2px; padding-bottom: 5px;"
-              >
-                <a-icon 
-                  v-if="activity.action == 'add_comment'"
-                  slot="dot" 
-                  type="message" 
-                  style="color: rgb(241, 75, 169);" 
-                />
-                <div v-if="activity.action == 'add_comment'">
-                  <a-comment
-                    :author="activity.user.name"
-                    class="card-comment-item"
-                  >
-                    <a-avatar 
-                      slot="avatar"
-                      style="color: rgb(255, 255, 255);; backgroundColor: rgb(24, 144, 255);"
-                    >
-                      {{ activity.user.name.slice(0, 1) }}
-                    </a-avatar>
-                    <template
-                      slot="actions"
-                      v-if="activity.user.id == userId && !isCommentEditing(activity.id)"
-                    >
-                      <span
-                        @click="editComment(activity.id)"
-                      ><a-icon type="edit" /></span>
-                      <span>
-                        <a-popconfirm
-                          title="确认删除评论？"
-                          ok-text="是"
-                          cancel-text="否"
-                          @confirm="commentDelete(activity.id)"
-                        >
-                          <a-icon type="delete" />
-                        </a-popconfirm>
-                      </span>
-                    </template>
-                    <div slot="content">
-                      <p v-if="!isCommentEditing(activity.id)">
-                        {{ activity.show_msg }}
-                      </p>
-                      <div v-if="isCommentEditing(activity.id)">
-                        <a-form-model>
-                          <a-form-item :style="{'marginBottom': '10px'}">
-                            <a-textarea
-                              :rows="2"
-                              v-model="activity.show_msg"
-                              :style="{'width': '100%'}"
-                            />
-                          </a-form-item>
-                          <a-form-item>
-                            <a-button
-                              size="small"
-                              @click="cancelEditComment(activity.id)"
-                              class="mrs"
-                            >
-                              {{ $t('cancel') }}
-                            </a-button>
-                            <a-button
-                              size="small"
-                              html-type="submit"
-                              :loading="editCommentSubmitting"
-                              type="primary"
-                              :disabled="isEmptyCommentContent(activity.id)"
-                              @click="updateComment(activity.id)"
-                            >
-                              {{ $t('save') }}
-                            </a-button>
-                          </a-form-item>
-                        </a-form-model>
-                      </div>
-                    </div>
-
-                    <a-tooltip
-                      slot="datetime"
-                      :title="activity.sample_date"
-                    >
-                      <span>{{ activity.sample_date }}</span>
-                    </a-tooltip>
-                  </a-comment>
-                </div>
-                <div v-else>
-                  <p>
-                    {{ activity.show_msg }}
-                    <span class="fts12 mlm">
-                      {{ activity.sample_date }}
-                    </span>
-                  </p>
-                </div>
-              </a-timeline-item>
-            </a-timeline>
-          </div>
-          <div calss="card-comment-add">
-            <a-textarea
-              :rows="2"
-              placeholder="评论内容"
-              v-model="commentForm.value"
-              @change="commentChange"
-              class="mbm"
-            />
-            <a-button
-              class="pull-right"
-              html-type="submit"
-              :loading="commentSubmitting"
-              type="primary"
-              :disabled="commentForm.value === '' || commentSubmitting"
-              @click="commentSubmit"
-            >
-              {{ $t('submit') }}
-            </a-button>
-          </div>
+            </a-col>
+          </a-row>
         </a-col>
       </a-row>
+      <a-skeleton
+        v-if="!loaded"
+        style="min-height: 729px;"
+        :paragraph="{ rows: 4 }"
+        avatar
+        active
+      />
     </a-modal>
     <a-modal
       v-model="showAttachmentPreview"
@@ -1020,6 +1058,7 @@ import 'prismjs/components/prism-css.min';  // language
 import 'mavon-editor/dist/css/index.css';
 import FTGhostBtnVue from '../common/FTGhostBtn.vue';
 import AttachmentIconVue from '../common/AttachmentIcon.vue';
+import i18n from '../../i18n';
 // import { Icon } from 'ant-design-vue';
 
 var mavonEditor = require('mavon-editor');
@@ -1051,6 +1090,7 @@ const defaultCard = {
       name: '',
       uuid: ''
     },
+    subtask_count: 0,
     kanban: {
       name: '',
       uuid: '',
@@ -1083,44 +1123,52 @@ export default {
     },
     props: ['boardId', 'cardId', 'showCardMoal'],
     data() {
-        return {
-            card: defaultCard,
-            cardOriginTitle: '',
-            activities: [],
-            showDescForm: false,
-            mavonToolbars: miniToolbars,
-            loaded: false,
-            uploadHeader: {'X-Auth-Token': store.state.token },
-            showCheckListInput: false,
-            currentCheckList: {title: ''},
-            checklistSubmiting: false,
-            currentEditCheckListTittle: '',
-            memberVisible: false,
-            memberVisibleMain: false,
-            members: [],
-            boardMembers: [],
-            priorities: priorities,
-            prioritiesColor: prioritiesColor,
-            comments: [],
-            commentCount: 0,
-            commentSubmitting: false,
-            commentForm: {value: ""},
-            commentEditStatus: {},
-            commentOriginContents: {},
-            editCommentSubmitting: false,
-            cardLabelIds: [],
-            sideDatePickerOpen: false,
-            newCheckListMembers: [],
-            newCheckListMemberIds: [],
-            newCheckListDuedate: null,
-            currentAttachment: {},
-            showAttachmentPreview: false,
-            currentPreviewUrl: '',
-            pdfSrc: null,
-            pdfPageNumber: undefined,
-            pdfLoading: false,
-            pdfLoadPercent: 0,
-        }        
+      return {
+        card: defaultCard,
+        cardOriginTitle: '',
+        activities: [],
+        showDescForm: false,
+        mavonToolbars: miniToolbars,
+        loaded: false,
+        uploadHeader: {'X-Auth-Token': store.state.token },
+        showCheckListInput: false,
+        currentCheckList: {title: ''},
+        checklistSubmiting: false,
+        currentEditCheckListTittle: '',
+        memberVisible: false,
+        memberVisibleMain: false,
+        members: [],
+        boardMembers: [],
+        priorities: priorities,
+        prioritiesColor: prioritiesColor,
+        comments: [],
+        commentCount: 0,
+        commentSubmitting: false,
+        commentForm: {value: ""},
+        commentEditStatus: {},
+        commentOriginContents: {},
+        editCommentSubmitting: false,
+        cardLabelIds: [],
+        sideDatePickerOpen: false,
+        newCheckListMembers: [],
+        newCheckListMemberIds: [],
+        newCheckListDuedate: null,
+        currentAttachment: {},
+        showAttachmentPreview: false,
+        currentPreviewUrl: '',
+        pdfSrc: null,
+        pdfPageNumber: undefined,
+        pdfLoading: false,
+        pdfLoadPercent: 0,
+        showSubTaskSide: true,
+        newSubtaskTitle: '',
+        subtaskTree: {
+          id: 0,
+          uuid: "",
+          title: "",
+          subtasks: []
+        }
+      }        
     },
 
     created() {
@@ -1147,6 +1195,9 @@ export default {
 
     computed: {
       modalWidth: function() {
+        if (this.showSubTaskSide) {
+          return '98%';
+        }
         const windowWidth = window.innerWidth;
         if (windowWidth >= 2560) {
           return '2000px';
@@ -1249,13 +1300,22 @@ export default {
             this.loaded = true;
             withMember && this.onMemberSearch('');
             withActivity && this.loadCardActivity();
+            this.loadSubtasks();
           });
         },
+
+        loadSubtasks: function() {
+          api.cardSubtasks({query: {boardId: this.boardId, taskId: this.cardId}}).then(r => {
+            this.subtaskTree = r;
+          })
+        },
+
         loadCardActivity: function() {
           api.cardActivity({query: {boardId: this.boardId, taskId: this.cardId}}).then(resp => {
             this.activities = resp;
           });
         },
+
         cancel: function() {
             this.loaded = false;
             this.showTitleForm = false;
@@ -1986,6 +2046,32 @@ export default {
           });
         },
 
+        switchSubtaskSide: function() {
+          this.showSubTaskSide = !this.showSubTaskSide;
+        },
+
+        addSubtask: function() {
+          let data = {
+            list_id: this.card.list_id,
+            title: this.newSubtaskTitle,
+            parent_id: this.card.id,
+          };
+          api.cardCreate({query: {boardId: this.card.kanban_id}, data: data})
+            .then(() => {
+              this.$message.success(i18n.t('task.create.success_msg'));
+              this.cardChange();
+              this.newSubtaskTitle = '';
+              this.loadSubtasks();
+            })
+            .catch((e) => {
+              console.log(e)
+            });
+        },
+
+        switchToTask: function(id) {
+          this.$emit('switch-to-task', id);
+        },
+
         shareLink: function() {
           let link = window.location.href;
           copyToPlaster(link);
@@ -2042,13 +2128,13 @@ export default {
 
 .task-nav {
   background: #eff0f3;
-  width: calc(~"100% + 48px");
+  width: calc(~"100% + 24px");
   display: flex;
   height: 48px;
   line-height: 48px;
   margin-top: -24px;
-  margin-left: -24px;
-  margin-right: -24px;
+  // margin-left: -24px;
+  // margin-right: -24px;
   border-top-left-radius: 4px;
   border-top-right-radius: 4px;
   border-bottom: 1px solid #dcdfe4;
@@ -2068,7 +2154,6 @@ export default {
 
 .card-header {
   flex-shrink: 0;
-  margin-left: -24px;
   margin-right: -24px;
   display: flex;
   border-bottom: 1px solid #f4f4f4;
@@ -2124,6 +2209,65 @@ export default {
   }
 }
 
+.subtask-side {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #e8e8e8;
+  // box-shadow: 2px 0px 4px 0px #e8e8e8;
+  background-color: #fbfbfb;
+  padding: 24px;
+  z-index: 1;
+  @media screen and (min-width: 2000px) {
+    height: 980px;
+  }
+  @media screen and (max-width: 1920px) {
+    height: 780px;
+  }
+  @media screen and (max-width: 1440px) {
+    height: 680px;
+  }
+  
+  .subtask-side-title {
+    // height: 64px;
+    padding: 10px;
+    border-bottom: 1px solid #e8e8e8;
+  }
+  .subtask-side-body {
+    flex: 1;
+    .subtask-items {
+      .subtask-item {
+        padding: 5px 10px;
+        cursor: pointer;
+        border-radius: 4px;
+        overflow : hidden;
+        white-space: normal;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 1; /*超出1行就显示省略号，可以填3或者其它正整数*/
+        &:hover {
+          background-color: #e8e8e8;
+        }
+        .circle-dot {
+          border: 2px solid #666;
+          width: 10px;
+          height: 10px;
+          display: inline-block;
+          border-radius: 50%;
+        }
+      }
+      .subtask-item-active {
+        background-color: #e8e8e8;
+        font-weight: 500;
+        .circle-dot {
+          border-color: #1890ff;
+          border-width: 3px;
+        }
+      }
+    }
+  }
+}
+
 .modal-card-title {
   padding-bottom: 10px;
   padding-top: 10px;
@@ -2158,7 +2302,7 @@ export default {
     border: 1px solid #fff;
     border-radius: 4px;
     transition: all 0.3s;
-    overflow: scroll;
+    overflow-x: auto;
     img {
       max-width: 840px;
     }
@@ -2241,7 +2385,6 @@ export default {
 }
 
 .card-body {
-  margin-left: -24px;
   margin-right: -24px;
   position: relative;
   @media screen and (min-width: 2000px) {

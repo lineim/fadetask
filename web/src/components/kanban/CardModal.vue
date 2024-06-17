@@ -2063,6 +2063,7 @@ export default {
               this.cardChange();
               this.newSubtaskTitle = '';
               this.loadSubtasks();
+              this.card.subtask_count += 1;
             })
             .catch((e) => {
               console.log(e)

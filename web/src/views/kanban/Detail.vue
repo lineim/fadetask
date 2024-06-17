@@ -234,6 +234,12 @@
                   </div>
                 </div>
                 <div class="card-footer">
+                  <!-- 子任务 -->
+                  <a-tooltip title="Subtasks">
+                    <span class="card-footer-item">
+                      <a-icon type="unordered-list" /> {{ card.subtask_count }}
+                    </span>
+                  </a-tooltip>
                   <!-- 附件 -->
                   <a-tooltip
                     v-if="card.attachment_num"

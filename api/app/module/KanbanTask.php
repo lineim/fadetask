@@ -351,7 +351,7 @@ class KanbanTask extends BaseModule
         }
         $parentId = 0;
         if ($task['parentId']) {
-            $parentTask = $this->getTask($task['parentId'], ['kanban_id', 'parent_id']);
+            $parentTask = $this->getTask($task['parentId'], ['kanban_id', 'parent_id', 'subtask_count']);
             if (!$parentTask) {
                 throw new ResourceNotFoundException('task.parent_not_found');
             }
@@ -360,6 +360,7 @@ class KanbanTask extends BaseModule
             }
             if ($parentTask['parent_id'] > 0) { // 只支持两级子任务
                 $parentId = $parentTask['parent_id'];
+                $parentTask = $this->getTask($parentId, ['kanban_id', 'parent_id', 'subtask_count']);
             } else {
                 $parentId = $task['parentId'];
             }
@@ -397,6 +398,10 @@ class KanbanTask extends BaseModule
         $newTask->list_id = $listId;
         $newTask->created_time = time();
         $newTask->save();
+
+        if ($parentId) {
+            KanbanTaskModel::where('id', $parentId)->update(['subtask_count' => $parentTask->subtask_count += 1]);
+        }
 
         // Todo: +1 时加锁
         $list = KanbanListModel::where('id', $listId)->first();

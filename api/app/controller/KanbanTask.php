@@ -61,7 +61,6 @@ class KanbanTask extends Base
         $project = $this->getProjectModule()->getProjectByKanbanId($task->kanban_id, ['name', 'uuid']);
         $kanban->project = $project;
         $task->kanban = $kanban;
-        $task->subtask_count = $this->getKanbanTaskModule()->getSubtasksCount($task->id);
 
         return $this->json($task);
     }

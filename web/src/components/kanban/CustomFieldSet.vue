@@ -1,6 +1,7 @@
 <template>
   <div 
     class="custom-field mbl"
+    v-if="customfields.length > 0"
   >
     <div 
       class="field"

@@ -491,6 +491,9 @@ class Project extends BaseModule
         if (empty($kanbanIds)) {
             return [];
         }
+        if (!in_array('id', $fields)) {
+            $fields[] = 'id';
+        }
         $kanbans = $this->getKanbanModule()->getByIds($kanbanIds, $fields);
         $kanbanIds = $kanbans->pluck('id')->toArray();
         $statModule = $this->getProjectStatModule();

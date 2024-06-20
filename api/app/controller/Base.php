@@ -15,12 +15,7 @@ class Base
 
     protected function getUser(Request $request)
     {
-        $token = $request->header('X-Auth-Token');
-        if (!$token) {
-            return [];
-        }
-        $session = $request->session();
-        return $session->get($token, []);
+        return request()->session()->get('user', []);
     }
 
     protected function isAdmin(Request $request)

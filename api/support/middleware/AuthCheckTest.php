@@ -14,12 +14,16 @@
 
 namespace support\middleware;
 
+use app\common\container\LIContainer;
+use app\common\toolkit\ModuleTrait;
 use Webman\MiddlewareInterface;
 use Webman\Http\Response;
 use Webman\Http\Request;
 
 class AuthCheckTest implements MiddlewareInterface
 {
+    use ModuleTrait;
+
     public function process(Request $request, callable $next) : Response
     {
         $token = $request->header('X-Auth-Token');
@@ -56,6 +60,10 @@ class AuthCheckTest implements MiddlewareInterface
                 json_encode(['code' => '401', 'msg' => 'Invalid Auth Token'], JSON_UNESCAPED_UNICODE)
             );
         }
+        
+        $user = $this->getUserModule()->getByUserId($user['id']); // reload user
+        $request->session()->set('user', $user);
+
 
         $adminPrefix = '/api/admin';
         $role = $user['role'] ?? '';

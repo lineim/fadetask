@@ -123,7 +123,7 @@ class Kanban extends BaseModule
 
         $kanban = new KanbanModel();
         $kanban->name = $name;
-        $kanban->uuid = Uuid::uuid4()->toString();;
+        $kanban->uuid = Uuid::uuid4()->toString();
         $kanban->desc = $desc;
         $kanban->user_id = $userId;
         $kanban->created_time = $time;

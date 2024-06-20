@@ -9,5 +9,7 @@ class Workspace extends Model
 
     protected $table = 'workspace';
 
+    protected $connection = 'write';
+
     public $timestamps = false;
 }

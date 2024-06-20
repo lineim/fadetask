@@ -13,6 +13,7 @@ class AddWorkspaceMember extends Migration
             `id` int unsigned NOT NULL AUTO_INCREMENT,
             `workspace_id` int unsigned NOT NULL,
             `member_id` int unsigned NOT NULL,
+            `role` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'user',
             `deleted` tinyint unsigned NOT NULL DEFAULT '0',
             `creator_id` int unsigned NOT NULL,
             `created_time` int unsigned NOT NULL,

@@ -16,48 +16,57 @@ class Workspace extends BaseModule
     private $allTaskType = [
         [
             'name' => '任务',
+            'code' => 'task',
             'icon' => 'task',
-            'color' => 'blue-grey-6'
+            'color' => 'deep-purple-6'
         ],
         [
             'name' => '需求',
+            'code' => 'demand',
             'icon' => 'work_outline',
             'color' => 'blue-6'
         ],
         [
             'name' => '里程碑',
+            'code' => 'milestone',
             'icon' => 'adjust',
-            'color' => 'adjust'
+            'color' => 'indigo-6'
         ],
         [
             'name' => 'Issue',
+            'code' => 'issue',
             'icon' => 'bug_report',
             'color' => 'red-6'
         ], 
         [
             'name' => '目标',
+            'code' => 'target',
             'icon' => 'flag_circle',
             'color' => 'teal-6'
         ], 
         [
             'name' => '关键指标',
+            'code' => 'objective',
             'icon' => 'star',
             'color' => 'cyan-6'
         ], 
         [
             'name' => '关键结果',
+            'code' => 'key_result',
             'icon' => 'key',
             'color' => 'green-6'
         ], 
         [
             'name' => '账号',
+            'code' => 'account',
             'icon' => 'account_balance',
             'color' => 'pink-6'
         ],
         [
             'name' => '资源',
+            'code' => 'source',
             'icon' => 'source',
-            'color' => 'pink-6'
+            'color' => 'purple-6'
         ]
     ];
 
@@ -74,7 +83,7 @@ class Workspace extends BaseModule
         $workspace = new WorkspaceModel();
         $workspace->name = mb_substr($name, 0, 128);
         $workspace->uuid =  Uuid::uuid4()->toString();
-        $workspace->user_id = $userId;
+        $workspace->creator_id = $userId;
         $workspace->member_count = 1;
         $workspace->pay_plan = WorkspaceModel::PAY_PLAN_FREE;
         $workspace->created_time = time();
@@ -92,6 +101,7 @@ class Workspace extends BaseModule
                 }
                 $t['creator_id'] = $userId;
                 $t['workspace_id'] = $workspace->id;
+                $t['created_time'] = time();
             }
             $member->workspace_id = $workspace->id;
             WorkspaceTaskType::insert($defaultTypes);
@@ -107,6 +117,21 @@ class Workspace extends BaseModule
     public function getAllTaskTypes()
     {
         return $this->allTaskType;
+    }
+
+    public function getUserCreatedWorkspaces($userId, $fields = ['*'])
+    {
+        return WorkspaceModel::where('creator_id', $userId)
+            ->orderBy('id', 'ASC')
+            ->get($fields);
+    }
+
+    public function isUserBelongWorkspace($userId, $workspaceId)
+    {
+        return WorkspaceMember::where('member_id', $userId)
+            ->where('workspace_id', $workspaceId)
+            ->where('deleted', 0)
+            ->exists();
     }
 
 }

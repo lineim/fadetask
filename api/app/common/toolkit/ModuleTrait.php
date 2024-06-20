@@ -25,6 +25,7 @@ use app\module\Notification;
 use app\module\CustomField\CustomField;
 use app\module\CustomField\TaskCustomField;
 use app\module\Stat\ProjectStat;
+use app\module\Workspace\Workspace;
 
 trait ModuleTrait
 {
@@ -227,6 +228,14 @@ trait ModuleTrait
     protected function getProjectStatModule(): ProjectStat
     {
         return ProjectStat::inst();
+    }
+
+    /**
+     * @return Workspace
+     */
+    protected function getWorkspaceModule(): Workspace
+    {
+        return Workspace::inst();
     }
 
 }

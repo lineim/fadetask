@@ -11,6 +11,7 @@ class WorkspaceMember extends Model
     public const ROLE_USER = 'user';
 
     protected $table = 'workspace_member';
+    protected $connection = 'write';
 
     public $timestamps = false;
 

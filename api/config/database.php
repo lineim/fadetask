@@ -14,7 +14,8 @@
 
 return [
 
-    'default' => env('DEFAULT_CONNECTION', 'write'),
+    // 'default' => env('DEFAULT_CONNECTION', 'write'),
+    'default' => 'write',
 
     'connections' => [
 

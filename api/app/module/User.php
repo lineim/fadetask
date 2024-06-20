@@ -1,6 +1,7 @@
 <?php
 namespace app\module;
 
+use app\common\exception\AccessDeniedException;
 use app\common\exception\BusinessException;
 use app\common\exception\InvalidParamsException;
 use app\common\exception\ResourceNotFoundException;
@@ -160,7 +161,11 @@ class User extends BaseModule
 
     public function updateUser($id, array $updateData)
     {
-        $canUpdateFields = ['name', 'email', 'mobile', 'passhash', 'role', 'reg_type', 'hired_time', 'title', 'verified', 'avatar'];
+        $canUpdateFields = ['name', 'email', 'mobile', 
+            'passhash', 'role', 'reg_type', 
+            'hired_time', 'title', 'verified', 'avatar',
+            'current_workspace_id'
+        ];
         $updateData = ArrayHelper::parts($updateData, $canUpdateFields);
         if (!empty($updateData['name']) && mb_strlen($updateData['name']) > self::MAX_USERNAME_LEN) {
             throw new InvalidParamsException("user.name.invalid");
@@ -411,6 +416,14 @@ class User extends BaseModule
         }
 
         return $this->updatePassword($user->uuid, $newPass);
+    }
+
+    public function changeUserCurrentWorkspace($userId, $workspaceId)
+    {
+        if (!$this->getWorkspaceModule()->isUserBelongWorkspace($userId, $workspaceId)) {
+            throw new AccessDeniedException();
+        }
+        return $this->updateUser($userId, ['current_workspace_id' => $workspaceId]);
     }
 
     protected function updateUserByUuid($uuid, array $updateFields)

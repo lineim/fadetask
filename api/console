@@ -16,6 +16,6 @@ $app->add(new app\command\ReCalTaskLabelCountCommand());
 $app->add(new app\command\ReCalTaskMemberCountCommand());
 $app->add(new app\command\GenerateKanbanUuidCommand());
 $app->add(new app\command\GenerateAttachmentUuidCommand());
-$app->add(new app\command\GenerateWorkspaceCommand());
+$app->add(new app\command\InitWorkspaceCommand());
 
 $app->run();

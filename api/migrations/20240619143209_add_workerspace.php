@@ -13,7 +13,7 @@ class AddWorkerspace extends Migration
             `id` int unsigned NOT NULL AUTO_INCREMENT,
             `uuid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
             `name` varchar(128) NOT NULL,
-            `user_id` int NOT NULL,
+            `creator_id` int unsigned NOT NULL,
             `member_count` int unsigned NOT NULL DEFAULT '0',
             `pay_plan` int NOT NULL DEFAULT '0' COMMENT '0: free',
             `created_time` int unsigned NOT NULL,

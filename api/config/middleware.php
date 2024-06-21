@@ -15,7 +15,7 @@
 return [
     '' => [
         support\middleware\CallMonitor::class,
-        support\middleware\AuthCheckTest::class,
-        support\middleware\AccessControlTest::class,
+        support\middleware\AuthCheck::class,
+        support\middleware\AccessControl::class,
     ]
 ];

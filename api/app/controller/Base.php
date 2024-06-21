@@ -13,7 +13,7 @@ class Base
 
     use ModuleTrait;
 
-    protected function getUser(Request $request)
+    protected function getUser()
     {
         return request()->session()->get('user', []);
     }

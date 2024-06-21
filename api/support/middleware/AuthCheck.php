@@ -14,13 +14,12 @@
 
 namespace support\middleware;
 
-use app\common\container\LIContainer;
 use app\common\toolkit\ModuleTrait;
 use Webman\MiddlewareInterface;
 use Webman\Http\Response;
 use Webman\Http\Request;
 
-class AuthCheckTest implements MiddlewareInterface
+class AuthCheck implements MiddlewareInterface
 {
     use ModuleTrait;
 
@@ -62,8 +61,15 @@ class AuthCheckTest implements MiddlewareInterface
         }
         
         $user = $this->getUserModule()->getByUserId($user['id']); // reload user
-        $request->session()->set('user', $user);
+        if (!$this->getWorkspaceModule()->isUserBelongWorkspace($user->id, $user->current_workspace_id)) {
+            return new Response(
+                403, 
+                ['Content-Type' => 'application/json'], 
+                json_encode(['code' => '403', 'msg' => 'Access Denied!'], JSON_UNESCAPED_UNICODE)
+            );
+        }
 
+        $request->session()->set('user', $user);
 
         $adminPrefix = '/api/admin';
         $role = $user['role'] ?? '';

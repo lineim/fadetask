@@ -16,8 +16,9 @@ class Project extends Base
 
     public function add(Request $request)
     {
-        $user = $this->getUser($request);
+        $user = $this->getUser();
         $data = $request->post();
+        $data['workspace_id'] = $user['current_workspace_id'];
 
         // $validator = new Validator($data);
         // $validator->rules([

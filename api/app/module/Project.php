@@ -113,9 +113,13 @@ class Project extends BaseModule
 
     public function createProject($data, $userId)
     {
+        if (!$this->getWorkspaceModule()->isUserBelongWorkspace($userId, $data['workspace_id'])) {
+            throw new AccessDeniedException();
+        }
         $uuid = Uuid::uuid4();
         $project = new ProjectModel();
         $project->uuid = $uuid->toString();
+        $project->workspace_id = $data['workspace_id'];
         $project->member_num = 1;
         $project->name = $data['name'];
         $project->description = $data['desc'] ? $data['desc'] : '';

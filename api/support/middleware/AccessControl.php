@@ -18,7 +18,7 @@ use Webman\MiddlewareInterface;
 use Webman\Http\Response;
 use Webman\Http\Request;
 
-class AccessControlTest implements MiddlewareInterface
+class AccessControl implements MiddlewareInterface
 {
     public function process(Request $request, callable $next) : Response
     {

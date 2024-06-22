@@ -13,11 +13,13 @@ use support\Request;
 class Me extends Base
 {
 
-    public function get(Request $request)
+    public function get()
     {
-        $user = $this->getUser($request);
-        $user = $this->getUserModule()->getByUserId($user['id']);
+        $user = $this->getUser();
         unset($user['passhash']);
+        $workspace = $this->getWorkspaceModule()->getById($user['current_workspace_id']);
+        $user['workspace'] = $workspace;
+
         return $this->json($user);
     }
 

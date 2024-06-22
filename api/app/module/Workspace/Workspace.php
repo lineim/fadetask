@@ -17,7 +17,7 @@ class Workspace extends BaseModule
         [
             'name' => '任务',
             'code' => 'task',
-            'icon' => 'task',
+            'icon' => 'radio_button_checked',
             'color' => 'deep-purple-6'
         ],
         [
@@ -117,6 +117,16 @@ class Workspace extends BaseModule
     public function getAllTaskTypes()
     {
         return $this->allTaskType;
+    }
+
+    public function getById($id, $fields = ['*'])
+    {
+        return WorkspaceModel::where('id', $id)->first($fields);
+    }
+
+    public function  getByUuid($uuid, $fields = ['*'])
+    {
+        return WorkspaceModel::where('uuid', $uuid)->first($fields);
     }
 
     public function getUserCreatedWorkspaces($userId, $fields = ['*'])

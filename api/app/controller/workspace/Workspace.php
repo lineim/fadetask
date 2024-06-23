@@ -23,6 +23,6 @@ class Workspace extends Base
 
     public function put(Request $request, $uuid)
     {
-
+        $name = $request->post('name', '');
     }
 }

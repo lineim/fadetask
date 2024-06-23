@@ -61,14 +61,6 @@ class AuthCheck implements MiddlewareInterface
         }
         
         $user = $this->getUserModule()->getByUserId($user['id']); // reload user
-        if (!in_array($request->path(), $skipPath) && !$this->getWorkspaceModule()->isUserBelongWorkspace($user->id, $user->current_workspace_id)) {
-            return new Response(
-                403, 
-                ['Content-Type' => 'application/json'], 
-                json_encode(['code' => '403', 'msg' => 'Access Denied!'], JSON_UNESCAPED_UNICODE)
-            );
-        }
-
         $request->session()->set('user', $user);
 
         $adminPrefix = '/api/admin';

@@ -238,3 +238,7 @@ Route::group('/api/admin', function () {
     Route::post('/user/{uuid}/updatePassword', 'app\controller\admin\User@updatePassword');
     Route::get('/login/logs', 'app\controller\admin\LoginLog@search');
 });
+
+Route::group('/api/v2/', function() {
+    require_once app_path() . '/route/workspace.php';
+});

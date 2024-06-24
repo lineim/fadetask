@@ -16,7 +16,8 @@ return [
 
     'type'    => 'redis', // file or redis or redis_cluster
 
-    'handler' => Webman\RedisSessionHandler::class,
+    'handler' => Webman\Session\RedisSessionHandler::class,
+    // 'handler' => Webman\Session\RedisClusterSessionHandler::class,
 
     'config' => [
         'file' => [

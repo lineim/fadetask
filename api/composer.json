@@ -30,7 +30,7 @@
   },
   "require": {
     "php": ">=7.2",
-    "workerman/webman-framework": "^1.0",
+    "workerman/webman-framework": "^1.4.7",
     "monolog/monolog": "^2.0",
     "illuminate/database": "^7.28",
     "illuminate/redis": "^7.28",
@@ -38,17 +38,17 @@
     "ramsey/uuid": "^4.0",
     "guzzlehttp/guzzle": "^7.2",
     "swiftmailer/swiftmailer": "^6.0",
-    "webman/redis-queue": "^1.0",
     "workerman/crontab": "^1.0",
     "davedevelopment/phpmig": "^1.7",
     "twig/twig": "^3.3",
-    "webman/console": "^1.0",
+    "webman/console": "^1.2.12",
     "symfony/console": "^5.4",
     "alibabacloud/ecs-20140526": "^3.0",
     "alibabacloud/darabonba-openapi": "^0.2.8",
     "alibabacloud/dysmsapi-20170525": "2.0.23",
     "alibabacloud/sts-20150401": "^1.1",
-    "aliyuncs/oss-sdk-php": "^2.6"
+    "aliyuncs/oss-sdk-php": "^2.6",
+    "webman/redis-queue": "^1.3"
   },
   "suggest": {
     "ext-event": "For better performance. "

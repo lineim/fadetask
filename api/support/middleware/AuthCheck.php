@@ -60,9 +60,11 @@ class AuthCheck implements MiddlewareInterface
             );
         }
         
-        $user = $this->getUserModule()->getByUserId($user['id']); // reload user
-        $request->session()->set('user', $user);
-
+        if (!in_array($request->path(), $skipPath)) {
+            $user = $this->getUserModule()->getByUserId($user['id']); // reload user
+            $request->session()->set('user', $user);
+        }
+        
         $adminPrefix = '/api/admin';
         $role = $user['role'] ?? '';
         if (false !== stripos($adminPrefix, $request->path()) && 'ADMIN' !== $role) {

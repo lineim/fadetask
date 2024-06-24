@@ -16,24 +16,30 @@ use support\view\Raw;
 use support\view\Twig;
 use support\view\Blade;
 use support\view\ThinkPHP;
+use Workerman\Worker;
 
 return [
     // 文件更新检测
     'monitor' => [
-        'handler'     => process\FileMonitor::class,
-        'reloadable'  => false,
+        'handler' => process\Monitor::class,
+        'reloadable' => false,
         'constructor' => [
-            // 监控这些目录
-            'monitor_dir' => [
+            // Monitor these directories
+            'monitorDir' => array_merge([
                 app_path(),
                 config_path(),
                 base_path() . '/process',
                 base_path() . '/support',
-                base_path() . '/resource'
+                base_path() . '/resource',
+                base_path() . '/.env',
+            ], glob(base_path() . '/plugin/*/app'), glob(base_path() . '/plugin/*/config'), glob(base_path() . '/plugin/*/api')),
+            // Files with these suffixes will be monitored
+            'monitorExtensions' => [
+                'php', 'html', 'htm', 'env'
             ],
-            // 监控这些后缀的文件
-            'monitor_extenstions' => [
-                'php', 'html', 'htm'
+            'options' => [
+                'enable_file_monitor' => !Worker::$daemonize && DIRECTORY_SEPARATOR === '/',
+                'enable_memory_monitor' => DIRECTORY_SEPARATOR === '/',
             ]
         ]
     ],

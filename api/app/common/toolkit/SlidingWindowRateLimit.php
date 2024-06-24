@@ -43,7 +43,7 @@ class SlidingWindowRateLimit
         $this->redis->multi();
         // delete the data which out of sliding window
         $this->redis->zRemRangeByScore($zKey, 0, $startTime);
-        $this->redis->zAdd($zKey, [], $nowTime, $uuid);
+        $this->redis->zAdd($zKey, $nowTime, $uuid);
         $this->redis->expire($zKey, $ttl);
         $this->redis->exec();
 

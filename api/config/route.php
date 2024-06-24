@@ -240,5 +240,5 @@ Route::group('/api/admin', function () {
 });
 
 Route::group('/api/v2/', function() {
-    require_once app_path() . '/route/workspace.php';
+    require_once app_path('/route/workspace.php');
 });

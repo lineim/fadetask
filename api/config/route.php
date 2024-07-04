@@ -239,6 +239,6 @@ Route::group('/api/admin', function () {
     Route::get('/login/logs', 'app\controller\admin\LoginLog@search');
 });
 
-Route::group('/api/v2/', function() {
+Route::group('/api/v2', function() {
     require_once app_path('/route/workspace.php');
 });

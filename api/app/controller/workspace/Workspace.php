@@ -8,7 +8,9 @@ class Workspace extends Base
 {
     public function get($uuid)
     {
-        return $this->getWorkspaceModule()->getByUuid($uuid);
+        $workspace = $this->getWorkspaceModule()->getByUuid($uuid);
+
+        return $this->json($workspace);
     }
 
     public function add(Request $request)
@@ -24,5 +26,10 @@ class Workspace extends Base
     public function put(Request $request, $uuid)
     {
         $name = $request->post('name', '');
+
+        $this->getWorkspaceModule()->updateByUuid($uuid, ['name' => $name]);
+        $workspace = $this->getWorkspaceModule()->getByUuid($uuid);
+
+        return $this->json($workspace);
     }
 }

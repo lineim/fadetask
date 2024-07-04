@@ -1,11 +1,11 @@
 <?php
 namespace app\module\Workspace;
 
+use app\common\exception\BusinessException;
 use app\common\toolkit\ModuleTrait;
 use app\module\BaseModule;
 use app\module\Workspace\models\Workspace as WorkspaceModel;
 use app\module\Workspace\models\WorkspaceMember;
-use app\module\Workspace\models\WorkspaceProject;
 use app\module\Workspace\models\WorkspaceTaskType;
 use Ramsey\Uuid\Uuid;
 
@@ -114,6 +114,15 @@ class Workspace extends BaseModule
         }
     }
 
+    public function getWorkspaceTaskTypes($uuid)
+    {
+        $workspace = $this->getByUuid($uuid, ['id']);
+        if (!$workspace) {
+            throw new BusinessException('workspace.not_found');
+        }
+        return WorkspaceTaskType::where('workspace_id', $workspace->id)->get();
+    }
+
     public function getAllTaskTypes()
     {
         return $this->allTaskType;
@@ -124,9 +133,24 @@ class Workspace extends BaseModule
         return WorkspaceModel::where('id', $id)->first($fields);
     }
 
-    public function  getByUuid($uuid, $fields = ['*'])
+    public function getByUuid($uuid, $fields = ['*'])
     {
         return WorkspaceModel::where('uuid', $uuid)->first($fields);
+    }
+
+    public function updateByUuid($uuid, array $data)
+    {
+        $updateData = [];
+        if (isset($data['name'])) {
+            if (empty(trim($data['name']))) {
+                throw new BusinessException('Invalid name!');
+            }
+            $updateData['name'] = mb_substr($data['name'], 0, 128);
+        }
+        if ($updateData) {
+            return WorkspaceModel::where('uuid', $uuid)->update($updateData);
+        }
+        return false;
     }
 
     public function getUserCreatedWorkspaces($userId, $fields = ['*'])
@@ -140,6 +164,15 @@ class Workspace extends BaseModule
     {
         return WorkspaceMember::where('member_id', $userId)
             ->where('workspace_id', $workspaceId)
+            ->where('deleted', 0)
+            ->exists();
+    }
+
+    public function userHasManagePermission($userId, $workspaceId)
+    {
+        return WorkspaceMember::where('member_id', $userId)
+            ->where('workspace_id', $workspaceId)
+            ->whereIn('role', ['owner', 'admin'])
             ->where('deleted', 0)
             ->exists();
     }

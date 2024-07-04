@@ -26,6 +26,7 @@ use app\module\CustomField\CustomField;
 use app\module\CustomField\TaskCustomField;
 use app\module\Stat\ProjectStat;
 use app\module\Workspace\Workspace;
+use app\module\Workspace\WorkspaceMember;
 
 trait ModuleTrait
 {
@@ -236,6 +237,14 @@ trait ModuleTrait
     protected function getWorkspaceModule(): Workspace
     {
         return Workspace::inst();
+    }
+
+    /**
+     * @return WorkspaceMember
+     */
+    protected function getWorkspaceMemberModule(): WorkspaceMember
+    {
+        return WorkspaceMember::inst();
     }
 
 }

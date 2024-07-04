@@ -6,7 +6,7 @@ use Webman\MiddlewareInterface;
 use Webman\Http\Response;
 use Webman\Http\Request;
 
-class WorkspaceAuthCheck extends MiddlewareInterface 
+class WorkspaceAuthCheck implements MiddlewareInterface 
 {
 
     use ModuleTrait;

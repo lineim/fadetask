@@ -16,9 +16,13 @@ class WorkspaceMember extends Base
 
     }
 
-    public function list()
+    public function list(Request $request, $uuid)
     {
-        $user = $this->getUser();
+        $page = $request->get('page', 1);
+        $pageSize = $request->get('query', 20);        
+        $members = $this->getWorkspaceMemberModule()->getWorkspaceMembers($uuid, $page, $pageSize, ['*']);
+
+        return $this->json($members);
     }
 
     public function put(Request $request, $uuid)

@@ -426,6 +426,25 @@ class User extends BaseModule
         return $this->updateUser($userId, ['current_workspace_id' => $workspaceId]);
     }
 
+    public function search($conditions, $sort = [], $page = 1, $limit = 10, $fields = ['*'])
+    {
+        $model = new UserModel();
+        if (!empty($conditions['user_ids'])) {
+            $model->whereIn('id', array_values($conditions['user_ids']));
+        }
+        if (!empty($conditions['keywords'])) {
+            $keywords = trim($conditions['keywords']);
+            $model->where(function($query) use ($keywords) {
+                $query->where('email', 'like', '%' . $keywords . '%')
+                    ->orWhere('name', 'like', '%' . $keywords . '%');
+            });
+        }
+        if ($sort) {
+            $model->orderBy($sort[0], $sort[1]);
+        }
+        return $model->offset(($page -1 ) * $limit)->limit($limit)->get($fields);
+    }
+
     protected function updateUserByUuid($uuid, array $updateFields)
     {
         return UserModel::where('uuid', $uuid)->update($updateFields);

@@ -54,6 +54,10 @@ class WorkspaceTaskType extends Base
         if (!$this->getWorkspaceModule()->userHasManagePermission($user['id'], $workspace->id)) {
             throw new AccessDeniedException();
         }
+        $data = $request->post();
+
+        $taskType = $this->getWorkspaceModule()->addTaskType($uuid, $data, $user['id']);
+        return $this->json($taskType);
     }
 
     public function put(Request $request, $uuid)

@@ -13,66 +13,9 @@ class Workspace extends BaseModule
 {
     use ModuleTrait;
 
-    private $allTaskType = [
-        [
-            'name' => '任务',
-            'code' => 'task',
-            'icon' => 'radio_button_checked',
-            'color' => 'deep-purple-6'
-        ],
-        [
-            'name' => '需求',
-            'code' => 'demand',
-            'icon' => 'work_outline',
-            'color' => 'blue-6'
-        ],
-        [
-            'name' => '里程碑',
-            'code' => 'milestone',
-            'icon' => 'adjust',
-            'color' => 'indigo-6'
-        ],
-        [
-            'name' => 'Issue',
-            'code' => 'issue',
-            'icon' => 'bug_report',
-            'color' => 'red-6'
-        ], 
-        [
-            'name' => '目标',
-            'code' => 'target',
-            'icon' => 'flag_circle',
-            'color' => 'teal-6'
-        ], 
-        [
-            'name' => '关键指标',
-            'code' => 'objective',
-            'icon' => 'star',
-            'color' => 'cyan-6'
-        ], 
-        [
-            'name' => '关键结果',
-            'code' => 'key_result',
-            'icon' => 'key',
-            'color' => 'green-6'
-        ], 
-        [
-            'name' => '账号',
-            'code' => 'account',
-            'icon' => 'account_balance',
-            'color' => 'pink-6'
-        ],
-        [
-            'name' => '资源',
-            'code' => 'source',
-            'icon' => 'source',
-            'color' => 'purple-6'
-        ]
-    ];
-
     public function createWorkspace($name, $userId)
     {
-        $defaultTypes = array_slice($this->allTaskType, 0, 3);
+        $defaultTypes = array_slice($this->getAllTaskTypes(), 0, 3);
         
         $member = new WorkspaceMember();
         $member->member_id = $userId;
@@ -125,7 +68,38 @@ class Workspace extends BaseModule
 
     public function getAllTaskTypes()
     {
-        return $this->allTaskType;
+        return TaskTypes::$types;
+    }
+
+    public function addTaskType($uuid, array $data, $userId)
+    {
+        $workspace = $this->getByUuid($uuid, ['id']);
+        if (!$workspace) {
+            throw new BusinessException('workspace.not_found');
+        }
+        $taskType = [];
+        if (!empty($data['code'])) {
+            $code = $data['code'];
+            $taskType = WorkspaceTaskType::where('workspace_id', $workspace->id)->where('code', $code)->first();
+            if ($taskType) {
+                throw new BusinessException('workspace.task_type_exists');
+            }
+            foreach ($this->getAllTaskTypes() as $t) {
+                if ($t['code'] == $code) {
+                    $taskType = $t;
+                    break;
+                }
+            }
+            if (!$taskType) {
+                throw new BusinessException('workspace.task_type_not_found');
+            }
+        } else {
+
+        }
+        $taskType['creator_id'] = $userId;
+        $taskType['workspace_id'] = $workspace->id;
+        $taskType['created_time'] = time();
+        return WorkspaceTaskType::insertGetId($taskType);
     }
 
     public function getById($id, $fields = ['*'])

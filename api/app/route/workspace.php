@@ -10,6 +10,7 @@ Route::group('/workspace', function() {
     });
     Route::group('/{uuid}/task_type', function () {
         Route::get('',  'app\controller\workspace\WorkspaceTaskType@list');
+        Route::post('',  'app\controller\workspace\WorkspaceTaskType@add');
     });
 })->middleware([
     app\middleware\WorkspaceAuthCheck::class

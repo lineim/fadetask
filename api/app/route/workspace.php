@@ -12,6 +12,10 @@ Route::group('/workspace', function() {
         Route::get('',  'app\controller\workspace\WorkspaceTaskType@list');
         Route::post('',  'app\controller\workspace\WorkspaceTaskType@add');
     });
+    Route::group('/{uuid}/project', function () {
+        Route::get('',  'app\controller\workspace\WorkspaceProject@list');
+        // Route::post('',  'app\controller\workspace\WorkspaceProject@add');
+    });
 })->middleware([
     app\middleware\WorkspaceAuthCheck::class
 ]);

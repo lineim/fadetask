@@ -47,6 +47,24 @@ class Project extends BaseModule
         return $this->managerRoles;
     }
 
+    public function listWorkspaceProjects($uuid, $cond = [], $order = [], $offset = 0, $limit = 10, $fields = ['*'])
+    {
+        $workspace = $this->getWorkspaceModule()->getByUuid($uuid, ['id']);
+        if (!$workspace) {
+            throw new BusinessException('workspace.not_found');
+        }
+        $model = ProjectModel::where('workspace_id', $workspace->id)
+            ->where('is_deleted', self::UN_DELETED)
+            ->where('is_closed', self::UN_CLOSED);
+        if (!empty($cond['keywords'])) {
+            $model->where('name', 'like', '%'.$cond['keywords'] . '%');
+        }
+        if ($order) {
+            $model->orderBy($order[0], $order[1]);
+        }
+        return $model->paginate($limit, $fields, 'page', $offset);
+    }
+
     public function getProjectById($id, array $fields = ['*'])
     {
         return ProjectModel::where('id', $id)

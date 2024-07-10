@@ -27,7 +27,7 @@ class WorkspaceMember extends Base
     {
         $page = $request->get('page', 1);
         $pageSize = $request->get('query', 20);        
-        $members = $this->getWorkspaceMemberModule()->getWorkspaceMembers($uuid, $page, $pageSize, ['*']);
+        $members = $this->getWorkspaceMemberModule()->getWorkspaceMembers($uuid, $page, $pageSize, ['uuid', 'name', 'email']);
 
         return $this->json($members);
     }

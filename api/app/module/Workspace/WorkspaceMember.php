@@ -22,7 +22,7 @@ class WorkspaceMember extends BaseModule
         $joinTimes = [];
         $creatorIds = [];
         $memberAndCreator = [];
-        $workspaceMembers = WorkspaceMemberModel::where('id', $workspace->id)
+        $workspaceMembers = WorkspaceMemberModel::where('workspace_id', $workspace->id)
             ->orderBy('id', 'desc')
             ->get(['member_id', 'role', 'created_time', 'creator_id']);
 
@@ -42,13 +42,16 @@ class WorkspaceMember extends BaseModule
         foreach ($creators as $c) {
             $indexCreators[$c->id] = $c;
         }
-
+        if (!in_array('id', $fields) && !in_array('*', $fields)) {
+            $fields[] = 'id';
+        }
         $members = $this->getUserModule()->search(['user_ids' => $userIds], [], $page, $limit, $fields);
 
         foreach ($members as &$member) {
             unset($member->passhash);
             $member->workspace_role = $userRoles[$member->id] ?? '';
             $member->creator = $indexCreators[$memberAndCreator[$m->member_id]] ?? [];
+            $member->join_time = $joinTimes[$member->id] ?? 0;
         }
         return $members;
     }

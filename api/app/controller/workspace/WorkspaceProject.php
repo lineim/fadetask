@@ -20,11 +20,15 @@ class WorkspaceProject extends Base
         foreach ($projects->items() as $project) {
             $userIds[] = $project->user_id;
         }
-        $users = $this->getUserModule()->getByUserIds($userIds, ['id', 'name', 'email']);
+        $users = [];
         $usersIndexed = [];
-        foreach ($users as $user) {
-            $usersIndexed[$user->id]= $user;
+        if ($userIds) {
+            $users = $this->getUserModule()->getByUserIds($userIds, ['id', 'name', 'email']);
+            foreach ($users as $user) {
+                $usersIndexed[$user->id]= $user;
+            }
         }
+        
         foreach ($projects->items() as &$project) {
             $project->creator = $usersIndexed[$project->user_id] ?? [];
         }

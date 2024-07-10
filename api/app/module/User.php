@@ -127,14 +127,6 @@ class User extends BaseModule
         $verified = $user['verified'] ?? 0;
         $regType = $user['reg_type'] ?? 'email';
 
-        $key = sprintf('reg:%s:%s', $email, $mobile);
-        if ($this->getRateLimit()->isLimited($key, rand(1, 999999), 300, 5, 600)) {
-            throw new BusinessException('system.request_too_fast');
-        }
-        if (!$this->getLocker()->lock($key, 5)) {
-            throw new BusinessException('Too many request!');
-        }
-
         $passwordHash = password_hash(trim($passowrd), PASSWORD_BCRYPT);
         $newUser = new UserModel();
         $uuid = Uuid::uuid4();
@@ -150,9 +142,24 @@ class User extends BaseModule
         $newUser->avatar = '';
         $newUser->created_time = time();
 
+        $key = sprintf('reg:%s:%s', $email, $mobile);
+        if ($this->getRateLimit()->isLimited($key, rand(1, 999999), 300, 5, 600)) {
+            throw new BusinessException('system.request_too_fast');
+        }
+        if (!$this->getLocker()->lock($key, 5)) {
+            throw new BusinessException('Too many request!');
+        }
+
         $result = false;
         try {
             $result = $newUser->save();
+            if ($result) {
+                // create default workspace
+                $workspace = $this->getWorkspaceModule()->createWorkspace(sprintf("%s's workspace",  $newUser->name), $newUser->id);
+                $this->changeUserCurrentWorkspace($newUser->id, $workspace->id);
+            }
+        } catch(\Exception $e) {
+            $this->getLogger()->error($e->getMessage());
         } finally {
             $locker->release($key);
             return $result;

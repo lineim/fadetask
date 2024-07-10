@@ -22,6 +22,9 @@ class User extends Base
         }
 
         $user['verified'] = 1;
+        if (empty($user['name'])) {
+            $user['name'] = mb_substr($user['email'], 0, mb_strpos($user['email'], '@'));
+        }
         
         try {
             $newUser = $this->getUserModule()->reg($user);

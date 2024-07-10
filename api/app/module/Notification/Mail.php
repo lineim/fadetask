@@ -9,7 +9,7 @@ class Mail extends Base
     public function sendRegVerifyCode($to, $code)
     {
         $params['code'] = $code;
-        $params['subject'] = 'LKB 注册验证码';
+        $params['subject'] = 'FadeTask注册验证码';
 
         return $this->sendSingleMsg($to, self::TYPE_REG_VERIFY_CODE, $params);;
     }

@@ -36,6 +36,7 @@ class Workspace extends BaseModule
             $workspace->save();
             $setTaskTypeDefault = false;
             foreach ($defaultTypes as &$t) {
+                unset($t['desc'], $t['use_case']);
                 if (!$setTaskTypeDefault) {
                     $t['is_default'] = 1;
                     $setTaskTypeDefault = true;

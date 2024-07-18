@@ -128,6 +128,26 @@ class Workspace extends BaseModule
         return false;
     }
 
+    public function getUserWorkspaces($userId, $fields = ['*'])
+    {
+        $members = WorkspaceMember::where('member_id', $userId)->where('deleted', 0)->get(['workspace_id']);
+        $workspaceIds = [];
+        foreach ($members as $member) {
+            $workspaceIds[] = $member->workspace_id;
+        }
+        return WorkspaceModel::whereIn('id', $workspaceIds)->orderBy('id', 'DESC')->get($fields);
+    }
+
+    public function incrementMemberCount($workspaceId)
+    {
+        return WorkspaceModel::where('id', $workspaceId)->increment('member_count');
+    }
+
+    public function decrementMemberCount($workspaceId)
+    {
+        return WorkspaceModel::where('id', $workspaceId)->decrement('member_count');
+    }
+
     public function getUserCreatedWorkspaces($userId, $fields = ['*'])
     {
         return WorkspaceModel::where('creator_id', $userId)
@@ -139,6 +159,16 @@ class Workspace extends BaseModule
     {
         return WorkspaceMember::where('member_id', $userId)
             ->where('workspace_id', $workspaceId)
+            ->where('deleted', 0)
+            ->exists();
+    }
+
+    public function hasAdminPermission($userId, $workspaceId)
+    {
+        return WorkspaceMember::where('member_id', $userId)
+            ->where('workspace_id', $workspaceId)
+            ->where('member_id', $userId)
+            ->whereIn('role', [WorkspaceMember::ROLE_OWNER, WorkspaceMember::ROLE_ADMIN])
             ->where('deleted', 0)
             ->exists();
     }

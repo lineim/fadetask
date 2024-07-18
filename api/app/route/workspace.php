@@ -7,6 +7,8 @@ Route::group('/workspace', function() {
     Route::put('/{uuid}',  'app\controller\workspace\Workspace@put');
     Route::group('/{uuid}/member', function () {
         Route::get('',  'app\controller\workspace\WorkspaceMember@list');
+        Route::post('/invite',  'app\controller\workspace\WorkspaceMember@invite');
+        Route::delete('/{memberId}',  'app\controller\workspace\WorkspaceMember@delete');
     });
     Route::group('/{uuid}/task_type', function () {
         Route::get('',  'app\controller\workspace\WorkspaceTaskType@list');
@@ -19,3 +21,7 @@ Route::group('/workspace', function() {
 })->middleware([
     app\middleware\WorkspaceAuthCheck::class
 ]);
+
+Route::group('/workspace', function() {
+    Route::post('/member/join',  'app\controller\workspace\WorkspaceMember@join');
+})->middleware([]);

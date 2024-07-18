@@ -414,16 +414,6 @@ class Project extends BaseModule
         return $joined;
     }
 
-    protected function makeInviteToken($uuid, $makerId)
-    {
-        $strs = ['1', 'a', '@', '$', 'c', '?', '&', '>', '(', 'G', '*'];
-        shuffle($strs);
-        $salt = array_slice($strs, 0, 8);
-        $salt = implode('', $salt);
-
-        return hash('sha512', sprintf('invite:tk:%d%d%s%d', $uuid, $makerId, $salt, time()));
-    }
-
     protected function verifyInviteToken($token)
     {
         $redis = $this->getStorageRedis();

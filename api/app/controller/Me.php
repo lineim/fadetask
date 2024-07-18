@@ -8,6 +8,7 @@
  */
 namespace app\controller;
 
+use app\common\exception\AccessDeniedException;
 use support\Request;
 
 class Me extends Base
@@ -18,7 +19,21 @@ class Me extends Base
         $user = $this->getUser();
         unset($user['passhash']);
         $workspace = $this->getWorkspaceModule()->getById($user['current_workspace_id']);
+        $role = $this->getWorkspaceMemberModule()->getMemberRole($user['id'], $workspace->id);
+        if (!$role) {
+            throw new AccessDeniedException();
+        }
+        $user['workspace_role'] = $role;
         $user['workspace'] = $workspace;
+        $user['workspaces'] = $this->getWorkspaceModule()->getUserWorkspaces($user['id'], ['id', 'uuid', 'name']);
+
+        foreach ($user['workspaces'] as $key => $w) {
+            if ($workspace->id == $w->id) {
+                unset($user['workspaces'][$key]);
+                break;
+            }
+        }
+        // $user['workspaces'] = array_values($user['workspaces']);
 
         return $this->json($user);
     }

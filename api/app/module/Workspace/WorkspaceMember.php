@@ -1,14 +1,27 @@
 <?php
 namespace app\module\Workspace;
 
+use app\common\exception\AccessDeniedException;
 use app\common\exception\BusinessException;
 use app\common\toolkit\ModuleTrait;
 use app\module\BaseModule;
 use app\module\Workspace\models\WorkspaceMember as WorkspaceMemberModel;
+use Throwable;
 
 class WorkspaceMember extends BaseModule
 {
     use ModuleTrait;
+
+    public function getMemberRole($userId, $workspaceId)
+    {
+        $member = WorkspaceMemberModel::where('workspace_id', $workspaceId)
+            ->where('member_id', $userId)
+            ->first(['role']);
+        if (!$member) {
+            return false;
+        }
+        return $member->role;
+    }
 
     public function getWorkspaceMembers($uuid, $page = 1, $limit = 20, $fields = ['*'])
     {
@@ -23,6 +36,7 @@ class WorkspaceMember extends BaseModule
         $creatorIds = [];
         $memberAndCreator = [];
         $workspaceMembers = WorkspaceMemberModel::where('workspace_id', $workspace->id)
+            ->where('deleted', 0)
             ->orderBy('id', 'desc')
             ->get(['member_id', 'role', 'created_time', 'creator_id']);
 
@@ -54,6 +68,136 @@ class WorkspaceMember extends BaseModule
             $member->join_time = $joinTimes[$member->id] ?? 0;
         }
         return $members;
+    }
+
+    public function joinByToken($userId, $token)
+    {
+        $tokenInfo = $this->veirfyToken($token);
+        $workspaceUuid = $tokenInfo['workspace_uuid'];
+        $workspace = $this->getWorkspaceModule()->getByUuid($workspaceUuid, ['id', 'uuid']);
+        if (!$workspace) {
+            throw new BusinessException('workspace.not_found');
+        }
+        if (!in_array($tokenInfo['role'], [WorkspaceMemberModel::ROLE_MEMBER, WorkspaceMemberModel::ROLE_ADMIN])) {
+            throw new BusinessException('workspace.member_role_error');
+        }
+        
+        $exist = WorkspaceMemberModel::where('workspace_id', $workspace->id)->where('member_id', $userId)->first();
+        $this->beginTransaction();
+        try {
+            if ($exist) { // 处理老成员：更新角色，取消删除状态。
+                $updateData = ['deleted' => 0];
+                if ($exist->role == WorkspaceMemberModel::ROLE_MEMBER) { // 如果用户原本是管理员或者Owner，就不修改角色
+                    $updateData['role'] = $tokenInfo['role'];
+                }
+                WorkspaceMemberModel::where('workspace_id', $workspace->id)
+                    ->where('member_id', $userId)
+                    ->update($updateData);
+                if ($exist->deleted) { // 如果之前被删除了，则需要重新更新工作空间的成员数量字段
+                    $this->getWorkspaceModule()->incrementMemberCount($workspace->id);
+                }
+            } else {
+                $role = $tokenInfo['role'];
+                $inviterId = $tokenInfo['inviter_id'];
+            
+                $member = new WorkspaceMemberModel();
+                $member->workspace_id = $workspace->id;
+                $member->member_id = $userId;
+                $member->role = $role;
+                $member->creator_id = $inviterId;
+                $member->created_time = time();
+                $member->save();
+                $this->getWorkspaceModule()->incrementMemberCount($workspace->id);
+            }
+            $this->commit();
+            return $workspace;
+        } catch (Throwable $t) {
+            $this->rollback();
+            $this->getLogger()->error('join workspace by token failed: ' .$t->getMessage(), [
+                'workspace_uuid' => $workspaceUuid,
+                'user_id' => $userId,
+                'token' => $token,
+                'exception_trace' => $t->getTraceAsString(),
+            ]);
+            throw $t;
+        }
+        
+        $this->getStorageRedis()->del($token);
+        return $workspace;
+    }
+
+    public function inviteUrl($frontUrl, $userId, $workspaceUuid, $role = WorkspaceMemberModel::ROLE_MEMBER)
+    {
+        $workspace = $this->getWorkspaceModule()->getByUuid($workspaceUuid, ['id']);
+        if (!$workspace) {
+            throw new BusinessException('workspace.not_found');
+        }
+        if (!$this->getWorkspaceModule()->hasAdminPermission($workspace->id, $userId)) {
+            throw new AccessDeniedException();
+        }
+    
+        $token = $this->makeInviteToken($workspaceUuid, $userId);        
+        $redis = $this->getStorageRedis();
+        $expireAt = time() + 8 * 3600;
+        $tokenInfo = [
+            'workspace_uuid' => $workspaceUuid,
+            'role' => $role,
+            'expire_at' => $expireAt,
+            'inviter_id' => $userId,
+            'invite_time' => time()
+        ];
+        $redis->hMSet($token, $tokenInfo);
+        $redis->expireAt($token, $expireAt);
+
+        return $frontUrl . '?' . http_build_query(['token' => $token, 'workspace_uuid' => $workspaceUuid]);
+    }
+
+    public function veirfyToken($token)
+    {
+        $redis = $this->getStorageRedis();
+        $tokenInfo = $redis->hGetAll($token);
+        if (!$tokenInfo) {
+            throw new BusinessException('token.invalid');
+        }
+        $tokenInfo['expire_at'] = $tokenInfo['expire_at'] ?? 0;
+        if ($tokenInfo['expire_at'] < time()) {
+            throw new BusinessException('token.expired');
+        }
+        return $tokenInfo;
+    }
+
+    public function deleteMember($workspaceUuid, $userId, $operatorId)
+    {
+        $workspace = $this->getWorkspaceModule()->getByUuid($workspaceUuid, ['id']);
+        if (!$workspace) {
+            throw new BusinessException('workspace.not_found');
+        }
+        if (!$this->getWorkspaceModule()->hasAdminPermission($operatorId, $workspace->id)) {
+            throw new AccessDeniedException();
+        }
+        $this->beginTransaction();
+        try {
+            $count = WorkspaceMemberModel::where('workspace_id', $workspace->id)
+                ->where('member_id', $userId)
+                ->where('deleted', 0)
+                ->update([
+                    'deleted' => 1,
+                ]);
+            if ($count) {
+                $this->getWorkspaceModule()->decrementMemberCount($workspace->id);
+            }
+            $this->commit();
+            return $count;
+        } catch (\Exception $e) {
+            $this->rollback();
+            $this->getLogger()->error('delete workspace member failed: ' . $e->getMessage(), [
+                'workspace_uuid' => $workspaceUuid,
+                'user_id' => $userId,
+                'operator_id' => $operatorId,
+                'exception_trace' => $e->getTraceAsString(),
+            ]);
+            throw new BusinessException('workspace.member.delete_failed');
+        }
     }
 
 }

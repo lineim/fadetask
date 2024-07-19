@@ -200,4 +200,55 @@ class WorkspaceMember extends BaseModule
         }
     }
 
+    public function changeMemberRole($workspaceUuid, $userId, $role, $operatorId) : bool
+    {
+        $workspace = $this->getWorkspaceModule()->getByUuid($workspaceUuid, ['id']);
+        if (!$workspace) {
+            throw new BusinessException('workspace.not_found');
+        }
+        if (!$this->getWorkspaceModule()->hasAdminPermission($operatorId, $workspace->id)) {
+            throw new AccessDeniedException();
+        }
+        if (!in_array($role, [WorkspaceMemberModel::ROLE_MEMBER, WorkspaceMemberModel::ROLE_ADMIN])) {
+            throw new BusinessException('workspace.member_role_error');
+        }
+        if ($role == WorkspaceMemberModel::ROLE_OWNER) {
+            throw new BusinessException('workspace.member_cannot_change_to_owner_role');
+        }
+        $member = WorkspaceMemberModel::where('workspace_id', $workspace->id)
+            ->where('member_id', $userId)
+            ->where('deleted', 0)
+            ->first();
+        if (!$member) {
+            throw new BusinessException('workspace.member_not_found');
+        }
+        if ($member->role == WorkspaceMemberModel::ROLE_OWNER) {
+            throw new BusinessException('workspace.member_cannot_change_owner_role');
+        }
+        if ($member->role == $role) {
+            return true;
+        }
+
+        $this->beginTransaction();
+        try {
+            $count = WorkspaceMemberModel::where('workspace_id', $workspace->id)
+                ->where('member_id', $userId)
+                ->where('deleted', 0)
+                ->update([
+                    'role' => $role,
+                ]);
+            $this->commit();
+            return !!$count;
+        } catch (\Exception $e) {
+            $this->rollback();
+            $this->getLogger()->error('change workspace member role failed: ' . $e->getMessage(), [
+                'workspace_uuid' => $workspaceUuid,
+                'user_id' => $userId,
+                'operator_id' => $operatorId,
+                'exception_trace' => $e->getTraceAsString(),
+            ]);
+            throw new BusinessException('workspace.member_role_change_failed');
+        }
+    }
+
 }

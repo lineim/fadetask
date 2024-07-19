@@ -79,6 +79,14 @@ class WorkspaceMember extends Base
         return $this->json([true]);
     }
 
+    public function changeRole(Request $request, $uuid, $memberId)
+    {
+        $user = $this->getUser();
+        $role = strtolower($request->post('role', 'member'));
+        $r = $this->getWorkspaceMemberModule()->changeMemberRole($uuid, $memberId, $role, $user['id']);
+        return $this->json($r);
+    }
+
     protected function checkWorkspaceAdminPermission($workspaceId, $userId)
     {
         if ($this->getWorkspaceModule()->hasAdminPermission($workspaceId, $userId)) {

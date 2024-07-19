@@ -9,6 +9,7 @@ Route::group('/workspace', function() {
         Route::get('',  'app\controller\workspace\WorkspaceMember@list');
         Route::post('/invite',  'app\controller\workspace\WorkspaceMember@invite');
         Route::delete('/{memberId}',  'app\controller\workspace\WorkspaceMember@delete');
+        Route::put('/{memberId}/role',  'app\controller\workspace\WorkspaceMember@changeRole');
     });
     Route::group('/{uuid}/task_type', function () {
         Route::get('',  'app\controller\workspace\WorkspaceTaskType@list');

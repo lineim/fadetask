@@ -28,10 +28,11 @@ class WorkspaceMember extends Base
     public function list(Request $request, $uuid)
     {
         $page = $request->get('page', 1);
-        $pageSize = $request->get('query', 20);        
-        $members = $this->getWorkspaceMemberModule()->getWorkspaceMembers($uuid, $page, $pageSize, ['uuid', 'name', 'email']);
-
-        return $this->json($members);
+        $pageSize = $request->get('page_size', 20);   
+        $keywords = $request->get('keywords', '');     
+        $members = $this->getWorkspaceMemberModule()->getWorkspaceMembers($uuid, $keywords, $page, $pageSize, ['uuid', 'name', 'email']);
+        $count = $this->getWorkspaceMemberModule()->getWorkspaceMembersCount($uuid, $keywords);
+        return $this->json(['total' => $count, 'members' => $members]);
     }
 
     public function put(Request $request, $uuid)

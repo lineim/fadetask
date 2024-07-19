@@ -452,6 +452,17 @@ class User extends BaseModule
         return $model->offset(($page -1 ) * $limit)->limit($limit)->get($fields);
     }
 
+    public function searchUserByIdsAndKeywords(array $ids, $keywords, $fields = ['id', 'name'])
+    {
+        if (empty($ids) || empty(trim($keywords))) {
+            return [];
+        }
+        return UserModel::whereIn('id', $ids)->where(function($query) use ($keywords) {
+            $query->where('email', 'like', '%' . $keywords . '%')
+                ->orWhere('name', 'like', '%' . $keywords . '%');
+        })->get($fields);
+    }
+
     protected function updateUserByUuid($uuid, array $updateFields)
     {
         return UserModel::where('uuid', $uuid)->update($updateFields);

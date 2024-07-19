@@ -23,11 +23,44 @@ class WorkspaceMember extends BaseModule
         return $member->role;
     }
 
-    public function getWorkspaceMembers($uuid, $page = 1, $limit = 20, $fields = ['*'])
+    public function getWorkspaceMembersCount($uuid, $keywords = '')
     {
         $workspace = $this->getWorkspaceModule()->getByUuid($uuid, ['id']);
         if (!$workspace) {
             throw new BusinessException('workpsace.not_found');
+        }
+
+        $userIdsGotByKeywords = [];
+        if (trim($keywords)) {
+            $allMembers = WorkspaceMemberModel::where('workspace_id', $workspace->id)
+                ->where('deleted', 0)
+                ->get(['member_id']);
+
+            $allMemberIds = $allMembers->pluck('member_id')->toArray();
+            $userIdsGotByKeywords = $this->getUserModule()->searchUserByIdsAndKeywords($allMemberIds, $keywords, ['id'])->pluck('id');
+        }
+        $model = WorkspaceMemberModel::where('workspace_id', $workspace->id)->where('deleted', 0);
+        if (trim($keywords)) {
+            $model->whereIn('member_id', $userIdsGotByKeywords);
+        }
+        return $model->count();
+    }
+
+    public function getWorkspaceMembers($uuid, $keywords = '', $page = 1, $limit = 20, $fields = ['*'])
+    {
+        $workspace = $this->getWorkspaceModule()->getByUuid($uuid, ['id']);
+        if (!$workspace) {
+            throw new BusinessException('workpsace.not_found');
+        }
+
+        $userIdsGotByKeywords = [];
+        if (trim($keywords)) {
+            $allMembers = WorkspaceMemberModel::where('workspace_id', $workspace->id)
+                ->where('deleted', 0)
+                ->get(['member_id']);
+
+            $allMemberIds = $allMembers->pluck('member_id')->toArray();
+            $userIdsGotByKeywords = $this->getUserModule()->searchUserByIdsAndKeywords($allMemberIds, $keywords, ['id'])->pluck('id');
         }
 
         $userIds = [];
@@ -35,10 +68,12 @@ class WorkspaceMember extends BaseModule
         $joinTimes = [];
         $creatorIds = [];
         $memberAndCreator = [];
-        $workspaceMembers = WorkspaceMemberModel::where('workspace_id', $workspace->id)
-            ->where('deleted', 0)
-            ->orderBy('id', 'desc')
-            ->get(['member_id', 'role', 'created_time', 'creator_id']);
+
+        $model = WorkspaceMemberModel::where('workspace_id', $workspace->id)->where('deleted', 0);
+        if (trim($keywords)) {
+            $model->whereIn('member_id', $userIdsGotByKeywords);
+        }
+        $workspaceMembers = $model->orderBy('id', 'desc')->get(['member_id', 'role', 'created_time', 'creator_id']);
 
         foreach ($workspaceMembers as $m) {
             $userIds[] = $m->member_id;

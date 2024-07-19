@@ -1,6 +1,7 @@
 <?php
 namespace app\module\Workspace;
 
+use app\common\exception\AccessDeniedException;
 use app\common\exception\BusinessException;
 use app\common\toolkit\ModuleTrait;
 use app\module\BaseModule;
@@ -105,12 +106,12 @@ class Workspace extends BaseModule
 
     public function getById($id, $fields = ['*'])
     {
-        return WorkspaceModel::where('id', $id)->first($fields);
+        return WorkspaceModel::where('id', $id)->where('is_deleted', 0)->first($fields);
     }
 
     public function getByUuid($uuid, $fields = ['*'])
     {
-        return WorkspaceModel::where('uuid', $uuid)->first($fields);
+        return WorkspaceModel::where('uuid', $uuid)->where('is_deleted', 0)->first($fields);
     }
 
     public function updateByUuid($uuid, array $data)
@@ -155,8 +156,34 @@ class Workspace extends BaseModule
             ->get($fields);
     }
 
+    public function deleteByUuid($uuid, $userId)
+    {
+        $workspace = $this->getByUuid($uuid, ['id']);
+        if (!$workspace) {
+            throw new BusinessException('workspace.not_found');
+        }
+        if (!$this->isOwner($userId, $workspace->id)) {
+            throw new AccessDeniedException('workspace.role_not_allowed_delete_workspace');
+        }
+
+        $myOwnWorkspaceCount = WorkspaceMember::where('member_id', $userId)
+            ->where('workspace_id', $workspace->id)
+            ->where('role', WorkspaceMember::ROLE_OWNER)
+            ->where('is_deleted', 0)
+            ->count();
+        if ($myOwnWorkspaceCount < 2) {
+            throw new BusinessException('workspace.cannot_delete_last_workspace');
+        }
+
+        return WorkspaceModel::where('uuid', $uuid)->delete();
+    }
+
     public function isUserBelongWorkspace($userId, $workspaceId)
     {
+        $workspace = $this->getById($workspaceId, ['id']);
+        if (!$workspace) {
+            throw new BusinessException('workspace.not_found');
+        }
         return WorkspaceMember::where('member_id', $userId)
             ->where('workspace_id', $workspaceId)
             ->where('deleted', 0)
@@ -169,6 +196,15 @@ class Workspace extends BaseModule
             ->where('workspace_id', $workspaceId)
             ->where('member_id', $userId)
             ->whereIn('role', [WorkspaceMember::ROLE_OWNER, WorkspaceMember::ROLE_ADMIN])
+            ->where('deleted', 0)
+            ->exists();
+    }
+
+    public function isOwner($userId, $workspaceId)
+    {
+        return WorkspaceMember::where('workspace_id', $workspaceId)
+            ->where('member_id', $userId)
+            ->where('role', WorkspaceMember::ROLE_OWNER)
             ->where('deleted', 0)
             ->exists();
     }

@@ -5,8 +5,7 @@ use Webman\Config;
 
 require_once __DIR__ . '/App.php';
 
-$app = new App();
-$app->boot('.env');
+App::run();
 
 $container = new ArrayObject();
 

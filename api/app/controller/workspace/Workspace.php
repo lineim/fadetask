@@ -8,6 +8,7 @@
  */
 namespace app\controller\workspace;
 
+use app\common\exception\AccessDeniedException;
 use app\controller\Base;
 use support\Request;
 
@@ -32,7 +33,11 @@ class Workspace extends Base
 
     public function put(Request $request, $uuid)
     {
+        $user = $this->getUser();
         $name = $request->post('name', '');
+        if (!$this->getWorkspaceModule()->hasAdminPermission($user['id'], $uuid)) {
+            throw new AccessDeniedException();
+        }
 
         $this->getWorkspaceModule()->updateByUuid($uuid, ['name' => $name]);
         $workspace = $this->getWorkspaceModule()->getByUuid($uuid);

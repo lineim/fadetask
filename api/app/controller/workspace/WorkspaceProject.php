@@ -1,6 +1,7 @@
 <?php
 namespace app\controller\workspace;
 
+use app\common\exception\BusinessException;
 use app\controller\Base;
 use support\Request;
 
@@ -33,6 +34,41 @@ class WorkspaceProject extends Base
             $project->creator = $usersIndexed[$project->user_id] ?? [];
         }
         return $this->json($projects);
+    }
+
+    public function listForTree(Request $request, $uuid)
+    {
+        $user = $this->getUser();
+        $keywords = $request->get('keywords', '');
+        $workspace = $this->getWorkspaceModule()->getByUuid($uuid, ['id']);
+        if (!$workspace) {
+            throw new BusinessException('workspace.not_found');
+        }
+
+        $projects = $this->getProjectModule()
+            ->getUserCanAccessProjectsInWorkspace($user['id'], $workspace->id, $keywords);
+
+        $userIds = [];
+        foreach ($projects as $project) {
+            $userIds[] = $project->user_id;
+        }
+        $users = [];
+        $usersIndexed = [];
+        if ($userIds) {
+            $users = $this->getUserModule()->getByUserIds($userIds, ['id', 'name', 'email']);
+            foreach ($users as $user) {
+                $usersIndexed[$user->id]= $user;
+            }
+        }
+        foreach ($projects as &$project) {
+            $project->creator = $usersIndexed[$project->user_id] ?? [];
+        }
+        return $this->json($projects);
+    }
+
+    public function add(Request $request, $uuid)
+    {
+        
     }
 
 }

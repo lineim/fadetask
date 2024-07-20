@@ -124,6 +124,10 @@ class User extends Base
         $session = $request->session();
         $token = Uuid::uuid4()->toString();
         $session->set($token, $user);
+        unset($user->passhash);
+        $workspace = $this->getWorkspaceModule()->getById($user->current_workspace_id, ['uuid']);
+        $user->current_workspace_uuid = $workspace->uuid;
+        
         return $this->json(['token' => $token, 'user' => $user]);
     }
 

@@ -65,6 +65,49 @@ class Project extends BaseModule
         return $model->paginate($limit, $fields, 'page', $offset);
     }
 
+    public function getUserCanAccessProjectsInWorkspace($userId, $workspaceId, $keywords = '', $fields = ['*'])
+    {
+        $workspaceAllProjects = ProjectModel::where('workspace_id', $workspaceId)
+            ->where('is_deleted', self::UN_DELETED)
+            ->where('is_deleted', self::UN_DELETED)
+            ->get(['id', 'is_public']);
+        $publicIds = [];
+        $privateIds = [];
+        foreach ($workspaceAllProjects as $project) {
+            if ($project->is_public) {
+                $publicIds[] = $project->id;
+            } else {
+                $privateIds[] = $project->id;
+            }
+        }
+
+        // 管理员可以查看所有项目
+        if ($this->getWorkspaceModule()->hasAdminPermission($userId, $workspaceId)) {
+            $canAccessIds = array_merge($publicIds, $privateIds);
+        }  else {
+            // 非公开的项目，需要判断用户是否有权限访问
+            $canAccessPrivateIds = ProjectMemberModel::where('user_id', $userId)
+                ->whereIn('project_id', $privateIds)
+                ->where('is_delete', 0)
+                ->get(['project_id'])
+                ->pluck('project_id')->toArray();
+        
+            $canAccessIds = array_merge($publicIds, $canAccessPrivateIds);
+        }
+        
+        $model = ProjectModel::where('workspace_id', $workspaceId)
+            ->whereIn('id', array_values($canAccessIds))
+            ->where('is_deleted', self::UN_DELETED)
+            ->where('is_closed', self::UN_CLOSED);
+
+        if (trim($keywords)) {
+            // $model = $model->where('name', 'like', '%' . $keywords . '%');
+        }
+
+        return $model->orderBy('id', 'desc')
+            ->get($fields);
+    }
+
     public function getProjectById($id, array $fields = ['*'])
     {
         return ProjectModel::where('id', $id)

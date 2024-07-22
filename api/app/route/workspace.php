@@ -19,6 +19,7 @@ Route::group('/workspace', function() {
         Route::get('',  'app\controller\workspace\WorkspaceProject@list');
         Route::get('/listTree',  'app\controller\workspace\WorkspaceProject@listForTree');
         Route::post('',  'app\controller\workspace\WorkspaceProject@add');
+        Route::get('/{spaceUuid}/overview',  'app\controller\workspace\WorkspaceProject@overview');
     });
 })->middleware([
     app\middleware\WorkspaceAuthCheck::class

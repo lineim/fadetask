@@ -1,6 +1,7 @@
 <?php
 namespace app\controller\workspace;
 
+use app\common\exception\AccessDeniedException;
 use app\common\exception\BusinessException;
 use app\controller\Base;
 use support\Request;
@@ -64,6 +65,23 @@ class WorkspaceProject extends Base
             $project->creator = $usersIndexed[$project->user_id] ?? [];
         }
         return $this->json($projects);
+    }
+
+    public function overview(Request $request, $uuid, $spaceUuid)
+    {
+        $user = $this->getUser();
+        $field = ['name', 'uuid', 'description', 'member_num', 'kanban_num', 'is_public', 'created_time'];
+        $space = $this->getProjectModule()->getProjectByUuid($spaceUuid, $field);
+        if (!$space) {
+            throw new BusinessException('space.not_found');
+        }
+        if (!$this->getProjectModule()->isMember($spaceUuid, $user['id'])) {
+            throw new AccessDeniedException();
+        }
+        
+        $overview = $this->getProjectStatModule()->overview($spaceUuid);
+        $overview['space'] = $space;
+        return $this->json($overview);
     }
 
     public function add(Request $request, $uuid)

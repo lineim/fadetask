@@ -174,6 +174,9 @@ class Project extends BaseModule
 
     public function createProject($data, $userId)
     {
+        if (!trim($data['name'])) {
+            throw new BusinessException('Project name is required');
+        }
         if (!$this->getWorkspaceModule()->isUserBelongWorkspace($userId, $data['workspace_id'])) {
             throw new AccessDeniedException();
         }
@@ -182,8 +185,10 @@ class Project extends BaseModule
         $project->uuid = $uuid->toString();
         $project->workspace_id = $data['workspace_id'];
         $project->member_num = 1;
-        $project->name = $data['name'];
-        $project->description = $data['desc'] ? $data['desc'] : '';
+        $project->name = mb_substr($data['name'], 0, 32);
+        $project->description = $data['desc'] ? mb_substr($data['desc'], 0, 64) : '';
+        $project->is_public = isset($data['is_public']) && $data['is_public'] ? 1 : 0;
+        $project->color = $data['color'] ?? 'blue';
         $project->user_id = $userId;
         $project->created_time = time();
         $project->updated_time = time();
@@ -197,7 +202,7 @@ class Project extends BaseModule
             $member->join_time = time();
             $member->created_time = time();
             $member->save();
-            return $project->uuid;
+            return $project;
         } catch (\Exception $e) {
             $this->getLogger()->error($e->getMessage(), $e->getTrace());
             throw $e;

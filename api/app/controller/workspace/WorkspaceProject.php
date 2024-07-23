@@ -86,7 +86,19 @@ class WorkspaceProject extends Base
 
     public function add(Request $request, $uuid)
     {
-        
+        $name = $request->post('name', '');
+        $desc = $request->post('desc', '');
+        $isPublic = $request->post('is_public', 0);
+        $color = $request->post('color', 'blue');
+
+        $workspace = $this->getWorkspaceModule()->getByUuid($uuid, ['id']);
+        if (!$workspace) {
+            throw new BusinessException('workspace.not_found');
+        }
+
+        $project = ['name' => $name, 'desc' => $desc, 'color' => $color, 'is_public' => $isPublic, 'workspace_id' => $workspace->id];
+        $project = $this->getProjectModule()->createProject($project, $this->getUser()['id']);
+        return $this->json($project);
     }
 
 }

@@ -16,6 +16,7 @@ use app\module\CustomField\CustomField;
 use Illuminate\Support\Collection;
 use Ramsey\Uuid\Uuid;
 use support\Db as SupportDb;
+use support\exception\BusinessException as ExceptionBusinessException;
 
 class Kanban extends BaseModule
 {
@@ -107,15 +108,31 @@ class Kanban extends BaseModule
         return KanbanModel::all($fields);
     }
 
-    public function create($name, $desc, $userId)
+    public function getProjectsList(array $projectIds, $orderBy = ['id', 'desc'], $fields = ['*'])
+    {
+        return KanbanModel::whereIn('project_id', $projectIds)
+            ->where('is_closed', self::KANBAN_NOT_CLOSED)
+            ->orderBy($orderBy[0], $orderBy[1])
+            ->get($fields);
+    }
+
+    public function create($spaceUuid, $name, $desc, $color, $userId)
     {
         $this->validateName($name);
         if (!$userId) {
             throw new InvalidParamsException('user id required!');
         }
-        if (!$this->getUserModule()->isSysAdmin($userId) && !$this->canUserCreate($userId)) {
-            throw new BusinessException('kanban.create.create_limited');
+        $space = $this->getProjectModule()->getProjectByUuid($spaceUuid, ['id']);
+        if (!$space) {
+            throw new ExceptionBusinessException('space.not_found!');
         }
+        if (!$this->getProjectModule()->hasPermission($spaceUuid, $userId)) {
+            throw new AccessDeniedException('');
+        }
+        // 新版本不限制看板数量
+        // if (!$this->canUserCreate($userId)) {
+        //     throw new BusinessException('kanban.create.create_limited');
+        // }
 
         $desc = $this->formatDesc($desc);
 
@@ -124,23 +141,27 @@ class Kanban extends BaseModule
         $kanban = new KanbanModel();
         $kanban->name = $name;
         $kanban->uuid = Uuid::uuid4()->toString();
+        $kanban->project_id = $space->id;
+        $kanban->color = $color;
         $kanban->desc = $desc;
         $kanban->user_id = $userId;
         $kanban->created_time = $time;
         $kanban->save();
-
-        $member = new KanbanMemberModel();
-        $member->kanban_id = $kanban->id;
-        $member->member_id = $userId;
-        $member->role = self::MEMBER_ROLE_OWNER;
-        $member->created_time = $kanban->created_time;
-        $member->save();
+        
+        // 新版本，成员跟随空间(Project)走， 不再单独管理看板（List）成员
+        // init member
+        // $member = new KanbanMemberModel();
+        // $member->kanban_id = $kanban->id;
+        // $member->member_id = $userId;
+        // $member->role = self::MEMBER_ROLE_OWNER;
+        // $member->created_time = $kanban->created_time;
+        // $member->save();
 
         // init list
         $initList = [
-            ['name' => '新', 'kanban_id' => $kanban->id, 'sort' => 0, 'created_time' => $time],
-            ['name' => '进行中', 'kanban_id' => $kanban->id, 'sort' => 1, 'created_time' => $time],
-            ['name' => '已完成', 'kanban_id' => $kanban->id, 'sort' => 2, 'created_time' => $time]
+            ['name' => 'New', 'kanban_id' => $kanban->id, 'sort' => 0, 'created_time' => $time],
+            ['name' => 'Doing', 'kanban_id' => $kanban->id, 'sort' => 1, 'created_time' => $time],
+            ['name' => 'Done', 'kanban_id' => $kanban->id, 'sort' => 2, 'created_time' => $time]
         ];
         KanbanListModel::insert($initList);
 

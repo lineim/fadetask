@@ -20,6 +20,12 @@ Route::group('/workspace', function() {
         Route::get('/listTree',  'app\controller\workspace\WorkspaceProject@listForTree');
         Route::post('',  'app\controller\workspace\WorkspaceProject@add');
         Route::get('/{spaceUuid}/overview',  'app\controller\workspace\WorkspaceProject@overview');
+
+        // List or kanban
+        Route::group('/{spaceUuid}/list', function () {
+            Route::get('/{listUuid}',  'app\controller\workspace\SpaceList@get');
+            Route::post('',  'app\controller\workspace\SpaceList@add');
+        });
     });
 })->middleware([
     app\middleware\WorkspaceAuthCheck::class

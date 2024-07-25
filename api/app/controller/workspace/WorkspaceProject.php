@@ -50,8 +50,10 @@ class WorkspaceProject extends Base
             ->getUserCanAccessProjectsInWorkspace($user['id'], $workspace->id, $keywords);
 
         $userIds = [];
+        $projectIds = [];
         foreach ($projects as $project) {
             $userIds[] = $project->user_id;
+            $projectIds[] = $project->id;
         }
         $users = [];
         $usersIndexed = [];
@@ -61,7 +63,15 @@ class WorkspaceProject extends Base
                 $usersIndexed[$user->id]= $user;
             }
         }
+
+        $projectLists = $this->getKanbanModule()->getProjectsList($projectIds, ['name', 'asc'], ['uuid', 'name', 'color', 'project_id', 'created_time']);
+        $listIndexByProjectId = [];
+        foreach ($projectLists as $list) {
+            $listIndexByProjectId[$list->project_id][] = $list;
+        }
+
         foreach ($projects as &$project) {
+            $project->list = $listIndexByProjectId[$project->id] ?? [];
             $project->creator = $usersIndexed[$project->user_id] ?? [];
         }
         return $this->json($projects);

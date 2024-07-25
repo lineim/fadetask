@@ -394,6 +394,29 @@ class Project extends BaseModule
         return $removed;
     }
 
+    public function hasPermission($uuid, $userId)
+    {
+        $project = $this->getProjectByUuid($uuid, ['uuid', 'id', 'workspace_id', 'is_public']);
+        if (!$project) {
+            throw new ResourceNotFoundException('space.not_found');
+        }
+        // public
+        if ($project->is_public) {
+            return true;
+        }
+        // not public 
+        // 1. is project(space) member: project member can manage project(space)
+        $isProjectMember = ProjectMemberModel::where('project_id', $project->id)
+            ->where('user_id', $userId)
+            ->where('is_delete', self::UN_DELETED)
+            ->exists();
+        if ($isProjectMember) {
+            return true;
+        }
+        // 2. is workspace admin: workspace admin can manage all project in workspace
+        return $this->getWorkspaceModule()->hasAdminPermission($userId, $project->workspace_id);
+    }
+
     public function isMember($uuid, $userId)
     {
         $project = $this->getProjectByUuid($uuid, ['uuid', 'id']);

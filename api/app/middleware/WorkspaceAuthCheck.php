@@ -14,7 +14,18 @@ class WorkspaceAuthCheck implements MiddlewareInterface
     public function process(Request $request, callable $next) : Response
     {
         $user = $request->session()->get('user');
-        if (!$this->getWorkspaceModule()->isUserBelongWorkspace($user->id, $user->current_workspace_id)) {
+        $workspaceUuid = $request->route->param('uuid', '');
+        $worspace = $this->getWorkspaceModule()->getByUuid($workspaceUuid, ['id']);
+        if (!$worspace) {
+            return new Response(
+                200, 
+                ['Content-Type' => 'application/json'], 
+                json_encode(['code' => '700', 'msg' => 'Workspace Not Found!'], JSON_UNESCAPED_UNICODE)
+            );
+        }
+
+        // 检查用户是否属于当前工作空间
+        if (!$this->getWorkspaceModule()->isUserBelongWorkspace($user->id, $worspace->id)) {
             return new Response(
                 403, 
                 ['Content-Type' => 'application/json'], 

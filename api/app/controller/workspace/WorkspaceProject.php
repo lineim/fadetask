@@ -8,6 +8,22 @@ use support\Request;
 
 class WorkspaceProject extends Base
 {
+
+    public function get(Request $request, $uuid, $spaceUuid)
+    {
+        $project = $this->getProjectModule()->getProjectByUuid($spaceUuid, ['uuid', 'name', 'description', 'color', 'is_public']);
+        if (!$project) {
+            throw new BusinessException('project.not_found');
+        }
+        return $this->json($project);
+    }
+
+    public function update(Request $request, $uuid, $spaceUuid)
+    {
+        $updata = $this->getProjectModule()->updateProject($spaceUuid, $request->all());
+        
+        return $this->json($updata);
+    }
     
     public function list(Request $request, $uuid)
     {

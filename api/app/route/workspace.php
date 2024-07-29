@@ -18,6 +18,8 @@ Route::group('/workspace', function() {
     Route::group('/{uuid}/space', function () {
         Route::get('',  'app\controller\workspace\WorkspaceProject@list');
         Route::get('/listTree',  'app\controller\workspace\WorkspaceProject@listForTree');
+        Route::get('/{spaceUuid}/get',  'app\controller\workspace\WorkspaceProject@get');
+        Route::put('/{spaceUuid}/update',  'app\controller\workspace\WorkspaceProject@update');
         Route::post('',  'app\controller\workspace\WorkspaceProject@add');
         Route::get('/{spaceUuid}/overview',  'app\controller\workspace\WorkspaceProject@overview');
 

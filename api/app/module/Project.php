@@ -211,7 +211,18 @@ class Project extends BaseModule
 
     public function updateProject($uuid, array $updateData)
     {
+        $project = $this->getProjectByUuid($uuid);
+        if (!$project) {
+            throw new BusinessException('space.not_found');
+        }
+        $project->name = mb_substr($updateData['name'], 0, 32);
+        $project->description = $updateData['desc'] ? mb_substr($updateData['desc'], 0, 64) : '';
+        $project->is_public = isset($updateData['is_public']) && $updateData['is_public'] ? 1 : 0;
+        $project->color = $updateData['color'] ?? 'blue';
+        $project->updated_time = time();
 
+        $project->save();
+        return $project;
     }
 
     public function open($uuid, $operator) : bool

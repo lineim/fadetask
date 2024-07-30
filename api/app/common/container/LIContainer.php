@@ -8,7 +8,7 @@ class LIContainer extends Container
 
     public function set($name, $inst)
     {
-        $this->_instances[$name] = $inst;
+        $this->instances[$name] = $inst;
     }
 
 }

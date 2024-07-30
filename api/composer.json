@@ -10,7 +10,7 @@
   "description": "High performance HTTP Service Framework.",
   "config": {
     "platform": {
-			"php": "7.4"
+			"php": "8.3"
 		}
   },
   "authors": [
@@ -32,9 +32,9 @@
     "php": ">=7.2",
     "workerman/webman-framework": "^1.4.7",
     "monolog/monolog": "^2.0",
-    "illuminate/database": "^7.28",
-    "illuminate/redis": "^7.28",
-    "vlucas/phpdotenv": "^4.0",
+    "illuminate/database": "^11.18.1",
+    "illuminate/redis": "^11.18.1",
+    "vlucas/phpdotenv": "^5.6.1",
     "ramsey/uuid": "^4.0",
     "guzzlehttp/guzzle": "^7.2",
     "swiftmailer/swiftmailer": "^6.0",
@@ -49,7 +49,7 @@
     "alibabacloud/sts-20150401": "^1.1",
     "aliyuncs/oss-sdk-php": "^2.6",
     "webman/redis-queue": "^1.3",
-    "illuminate/pagination": "^7.30"
+    "illuminate/pagination": "^11.0"
   },
   "suggest": {
     "ext-event": "For better performance. "
